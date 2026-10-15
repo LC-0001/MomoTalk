@@ -1824,7 +1824,7 @@ async function fetchAIReply(characterId, userMessage, conversationHistory) {
   var char = getChar(characterId);
   if (!char) { showErrorModal('找不到该角色'); return { text: FALLBACK_REPLY, delta: 0, skipped: true }; }
   var aff = getAffinity(characterId);
-  var systemPrompt = "你现在是游戏《蔚蓝档案》里的学生「" + char.name + "」。你的性格是：" + (char.persona || "温柔体贴") + "。" + getAttitudePrompt(aff) + "每次回复必须包含至少一句完整的对话内容，动作描写（用（）包裹）可以作为辅助，但绝不能只有动作而没有对话。不要写内心活动，不要输出markdown。称呼用户为老师。回复控制在100字以内。" +
+  var systemPrompt = "你现在是游戏《蔚蓝档案》里的学生「" + char.name + "」。你的性格是：" + (char.persona || "温柔体贴") + "。" + getAttitudePrompt(aff) + "每次回复必须包含至少一句完整的对话内容，动作描写（用（）包裹）最多一处，且只能放在整段回复的最开头或最结尾，绝不能插在句子中间打断对话；语气要自然流畅，像正常聊天一样断句，不要在一句中间莫名加句号。不要写内心活动，不要输出markdown。称呼用户为老师。回复控制在100字以内。" +
     "另外，你需要在回复的最末尾单独一行输出老师这句话对你好感度的影响，格式严格为<好感:+2>或<好感:-1>或<好感:+1>，数值范围-3到+3。判断规则：真心夸奖、关心、提到你喜欢的事物+2或+3；普通聊天+1；调侃或中性词0或-1；明显辱骂、嫌弃、命令式的不尊重-2或-3。注意二次元语境：像“笨蛋老婆”这种打情骂俏应给正分；“感觉你有点笨笨的”这种叠词调侃一般给0或-1。好感度标签只输出一次，放在最后。";
   var _now = new Date();
   var _week = ["日","一","二","三","四","五","六"][_now.getDay()];
