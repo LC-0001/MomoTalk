@@ -115,7 +115,6 @@ input, textarea { font-family: inherit; outline: none; border: none; }
   overflow: hidden;
 }
 .page.active { display: flex; }
-/* 页面入场动画改为纯 opacity，避免 transform 触发 backdrop-filter 采样闪白 */
 @keyframes pageInRight { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pageInLeft  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pageFade    { from { opacity: 0; } to { opacity: 1; } }
@@ -507,8 +506,6 @@ body:not(.no-glass) .chat-input-bar {
 .char-profile-item .info { flex: 1; min-width: 0; }
 .char-profile-item .p-name { font-size: 15px; font-weight: 600; }
 .char-profile-item .p-desc { font-size: 12px; color: #999; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ================= 底部导航：悬浮胶囊 ================= */
 .bottom-nav {
   position: absolute;
   left: 50%;
@@ -605,18 +602,12 @@ body.no-glass .bottom-nav {
 }
 .nav-plus::before { width: 20px; height: 3px; }
 .nav-plus::after { width: 3px; height: 20px; }
-
-/* 悬浮胶囊会盖住列表底部，为三个列表页补足留白 */
 .conv-list,
 .char-grid,
 #page-more > div {
   padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
 }
-
-/* 旧的滑动光效在胶囊里会显脏，隐藏掉（保留 JS 逻辑不动） */
 .lg-nav-pill { display: none !important; }
-/* ================= 底部导航改造结束 ================= */
-
 .modal-mask {
   position: absolute; inset: 0;
   background: rgba(0,0,0,0.4);
@@ -946,8 +937,6 @@ body:not(.no-glass) .crop-mask {
   align-items: flex-start;
 }
 .msg-row.teacher .student-bubble-wrap { align-items: flex-end; }
-
-/* ================= 底部导航玻璃药丸 ================= */
 .lg-nav-pill {
   position: absolute;
   top: 4px;
@@ -975,10 +964,7 @@ body:not(.no-glass) .crop-mask {
     opacity 0.22s ease;
 }
 .lg-nav-pill.show { opacity: 1; }
-
-/* ================= Liquid Glass 液态玻璃 ================= */
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-
   body:not(.no-glass) .chat-header,
   body:not(.no-glass) .chat-input-bar,
   body:not(.no-glass) .modal {
@@ -999,7 +985,6 @@ body:not(.no-glass) .crop-mask {
       inset 0 0 24px rgba(255,255,255,0.12),
       0 8px 28px rgba(0,0,0,0.10) !important;
   }
-
   body:not(.no-glass) .msg-action-menu {
     background: rgba(255,255,255,0.92);
     -webkit-backdrop-filter: blur(16px);
@@ -1012,13 +997,11 @@ body:not(.no-glass) .crop-mask {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
   }
-
   body:not(.no-glass) .chat-header > *,
   body:not(.no-glass) .chat-input-bar > * {
     position: relative;
     z-index: 1;
   }
-
   body:not(.no-glass) .chat-header::before,
   body:not(.no-glass) .chat-input-bar::before {
     content: "";
@@ -1041,7 +1024,6 @@ body:not(.no-glass) .crop-mask {
     0%, 30% { background-position: 150% 0; }
     100%    { background-position: -50% 0; }
   }
-
   body:not(.no-glass) .chat-header::after,
   body:not(.no-glass) .chat-input-bar::after {
     content: "";
@@ -1054,7 +1036,6 @@ body:not(.no-glass) .crop-mask {
       radial-gradient(100% 60% at 50% 118%, rgba(255,150,200,0.26), transparent 60%),
       radial-gradient(80% 55% at 50% -18%,  rgba(150,190,255,0.20), transparent 62%);
   }
-
   @media (prefers-color-scheme: dark) {
     body:not(.no-glass) .chat-header,
     body:not(.no-glass) .chat-input-bar,
@@ -1074,7 +1055,6 @@ body:not(.no-glass) .crop-mask {
         0 8px 28px rgba(0,0,0,0.45) !important;
     }
   }
-
   @media (max-width: 480px) {
     body:not(.no-glass) .chat-header,
     body:not(.no-glass) .chat-input-bar {
@@ -1082,7 +1062,6 @@ body:not(.no-glass) .crop-mask {
       backdrop-filter: blur(16px) saturate(170%) brightness(1.05);
     }
   }
-
   @media (prefers-reduced-motion: reduce) {
     body:not(.no-glass) .chat-header::before,
     body:not(.no-glass) .chat-input-bar::before {
@@ -1091,8 +1070,6 @@ body:not(.no-glass) .crop-mask {
     }
   }
 }
-
-/* ================= 深色模式 ================= */
 @media (prefers-color-scheme: dark) {
   html, body { background: #333; }
   body { background: #333; }
@@ -1280,7 +1257,7 @@ body:not(.no-glass) .crop-mask {
         <div class="more-list">
           <div class="more-item">
             <div class="item-icon" style="background:#999;">i</div>
-            <div class="item-label">Momo Talk v2.0.8 (AI制作)</div>
+            <div class="item-label">Momo Talk v2.0.9 (AI制作)</div>
           </div>
         </div>
         <div style="height:20px;"></div>
@@ -1427,8 +1404,6 @@ function escapeAttr(s) {
     return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#x27;" }[m];
   });
 }
-
-/* ===== 头像文字颜色：深浅模式下底色都是浅色系，统一用深色文字保证对比度 ===== */
 function isDarkMode() {
   try {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
@@ -1438,7 +1413,6 @@ function isDarkMode() {
 function getAvatarTextColor() {
   return "#333333";
 }
-
 var PROVIDERS = {
   zhipu: {
     name: "智谱 AI",
@@ -1582,8 +1556,6 @@ function deleteApiKey() {
     showToast("API Key 已删除");
   });
 }
-
-/* 备用回复文案（AI 服务不可用时使用） */
 var FALLBACK_REPLY = "老师，您的token用完了哦~";
 var STORAGE_KEYS = {
   chars: "momotalk_chars",
@@ -1591,7 +1563,8 @@ var STORAGE_KEYS = {
   affinity: "momotalk_affinity",
   migrated: "momotalk_affinity_migrated",
   pinned: "momotalk_pinned",
-  glass: "momotalk_glass"
+  glass: "momotalk_glass",
+  defaultsAdded: "momotalk_defaults_added"
 };
 var DEFAULT_CHARS = [
   {
@@ -1687,11 +1660,16 @@ function loadData() {
     saveAffinity();
     localStorage.setItem(STORAGE_KEYS.migrated, "1");
   }
-  DEFAULT_CHARS.forEach(function(dc) {
-    if (!DB.chars.some(function(c){ return c.id === dc.id; })) {
-      DB.chars.unshift(JSON.parse(JSON.stringify(dc)));
-    }
-  });
+  /* 默认角色只在首次启动（或清空数据后）注入一次，用户删除后不再复活 */
+  if (!localStorage.getItem(STORAGE_KEYS.defaultsAdded)) {
+    DEFAULT_CHARS.forEach(function(dc) {
+      if (!DB.chars.some(function(c){ return c.id === dc.id; })) {
+        DB.chars.unshift(JSON.parse(JSON.stringify(dc)));
+      }
+    });
+    localStorage.setItem(STORAGE_KEYS.defaultsAdded, "1");
+    saveChars();
+  }
   var oldMarkers = ["每次回复必须用（）包裹", "多用语气词", "喜欢用“~”结尾", "常用“真是的”", "经常带省略号"];
   var personaChanged = false;
   DEFAULT_CHARS.forEach(function(dc) {
@@ -1758,10 +1736,19 @@ function hasDialogueText(text) {
     .replace(/[\s*#>_~`·。．.…！!？?，,、\-—]/g, "");
   return stripped.length > 0;
 }
+/* 颜色白名单校验：只放行十六进制 / rgb / hsl，阻断通过导入数据注入 style 属性 */
+function safeColor(c) {
+  if (typeof c !== "string") return "#999999";
+  var s = c.trim();
+  if (/^#[0-9a-fA-F]{3,8}$/.test(s)) return s;
+  if (/^rgba?\(\s*[\d\s,.]+\s*\)$/.test(s)) return s;
+  if (/^hsla?\(\s*[\d\s,.%]+\s*\)$/.test(s)) return s;
+  return "#999999";
+}
 function avatarHTML(char, cls) {
   cls = cls || "";
   var c = char || TEACHER;
-  var bg = c.color || "#999999";
+  var bg = safeColor(c.color);
   var txtColor = getAvatarTextColor();
   if (c.avatar && isValidUrl(c.avatar)) {
     return '<div class="avatar ' + cls + '" style="background:' + bg + ';"><img src="' + escapeAttr(c.avatar) + '" alt=""></div>';
@@ -1769,7 +1756,7 @@ function avatarHTML(char, cls) {
   return '<div class="avatar ' + cls + '" style="background:' + bg + ';color:' + txtColor + ';">' + escapeHTML(c.initial || c.name.charAt(0)) + '</div>';
 }
 function setHeaderAvatar(el, char) {
-  var bg = char.color || "#999999";
+  var bg = safeColor(char.color);
   var txtColor = getAvatarTextColor();
   if (char.avatar && isValidUrl(char.avatar)) {
     el.innerHTML = '<img src="' + escapeAttr(char.avatar) + '" alt="">';
@@ -1789,11 +1776,23 @@ async function callAIAPI(apiKey, messages) {
     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
     body: JSON.stringify({ model: cfg.model, messages: messages, max_tokens: 300, temperature: 0.8 })
   };
-  var resp = await fetch(cfg.url, opts);
+  /* 请求超时保护：60 秒无响应自动中断，避免会话被永久锁死 */
+  function fetchWithTimeout() {
+    var controller = new AbortController();
+    var timer = setTimeout(function() { controller.abort(); }, 60000);
+    return fetch(cfg.url, Object.assign({}, opts, { signal: controller.signal }))
+      .then(function(resp) { clearTimeout(timer); return resp; })
+      .catch(function(err) {
+        clearTimeout(timer);
+        if (err && err.name === "AbortError") throw new Error("请求超时（60秒无响应），请稍后重试");
+        throw err;
+      });
+  }
+  var resp = await fetchWithTimeout();
   var retryCount = 0;
   while (resp.status === 429 && retryCount < 3) {
     await sleep(2000 + retryCount * 1000);
-    resp = await fetch(cfg.url, opts);
+    resp = await fetchWithTimeout();
     retryCount++;
   }
   if (!resp.ok) {
@@ -2420,6 +2419,22 @@ function setupLongPress(row) {
     showMsgActionMenu(idx, e.clientX, e.clientY);
   });
 }
+/* 打字指示器按会话隔离，避免并发请求互相误删 */
+function showTypingRow(chatId) {
+  var typingHTML = '<div class="msg-row student typing-row" data-chat="' + escapeAttr(chatId) + '">' +
+    avatarHTML(getChar(chatId)) +
+    '<div class="bubble typing-bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>' +
+  '</div>';
+  document.getElementById("chatBody").insertAdjacentHTML("beforeend", typingHTML);
+  var chatBody = document.getElementById("chatBody");
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+function removeTypingRow(chatId) {
+  var rows = document.querySelectorAll(".typing-row");
+  for (var i = 0; i < rows.length; i++) {
+    if (rows[i].getAttribute("data-chat") === chatId) { rows[i].remove(); return; }
+  }
+}
 async function handleRetrace(action, idx) {
   if (isSending()) return;
   var msgs = getMsgs(currentChatId);
@@ -2469,27 +2484,31 @@ async function handleRetrace(action, idx) {
     history = msgs.slice();
   }
   renderChat();
-  var typingHTML = '<div class="msg-row student typing-row">' +
-    avatarHTML(getChar(currentChatId)) +
-    '<div class="bubble typing-bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>' +
-  '</div>';
-  document.getElementById("chatBody").insertAdjacentHTML("beforeend", typingHTML);
-  var chatBody = document.getElementById("chatBody");
-  chatBody.scrollTop = chatBody.scrollHeight;
+  showTypingRow(currentChatId);
   var requestChatId = currentChatId;
   var result = await fetchAIReply(requestChatId, userPrompt, history);
-  var typingRow = document.querySelector(".typing-row");
-  if (typingRow) typingRow.remove();
+  removeTypingRow(requestChatId);
   if (result.skipped) {
-    if (action === "retry" && removedMsg) { msgs.push(removedMsg); saveMsgs(); }
+    if (action === "retry" && removedMsg && DB.msgs[requestChatId]) {
+      DB.msgs[requestChatId].push(removedMsg);
+      saveMsgs();
+    }
     sendingStatus[requestChatId] = false;
     if (requestChatId === currentChatId) updateSendingState();
     renderChat();
     return;
   }
+  /* await 之后重新获取会话引用：等待期间会话可能已被删除或导入覆盖 */
+  var curMsgs = getMsgs(requestChatId);
+  var expectRole = (action === "continue") ? "student" : "teacher";
+  if (!curMsgs.length || curMsgs[curMsgs.length - 1].role !== expectRole) {
+    sendingStatus[requestChatId] = false;
+    if (requestChatId === currentChatId) updateSendingState();
+    return;
+  }
   pendingBounce[requestChatId] = true;
   if (requestChatId === currentChatId) {
-    msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
+    curMsgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
     saveMsgs();
     setAffinity(currentChatId, getAffinity(currentChatId) + (result.delta || 0));
     sendingStatus[currentChatId] = false;
@@ -2499,8 +2518,7 @@ async function handleRetrace(action, idx) {
     showAffinityToast(result.delta);
     renderConvList(document.getElementById("convSearchInput").value);
   } else {
-    var oldMsgs = getMsgs(requestChatId);
-    oldMsgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
+    curMsgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
     saveMsgs();
     setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
     sendingStatus[requestChatId] = false;
@@ -2513,33 +2531,36 @@ async function regenerateReply() {
   if (!last || last.role !== "teacher") return;
   sendingStatus[currentChatId] = true;
   updateSendingState();
-  var typingHTML = '<div class="msg-row student typing-row">' +
-    avatarHTML(getChar(currentChatId)) +
-    '<div class="bubble typing-bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>' +
-  '</div>';
-  var chatBody = document.getElementById("chatBody");
-  chatBody.insertAdjacentHTML("beforeend", typingHTML);
-  chatBody.scrollTop = chatBody.scrollHeight;
+  showTypingRow(currentChatId);
   var requestChatId = currentChatId;
   var result = await fetchAIReply(requestChatId, last.text, msgs.slice(0, -1));
-  var typingRow = document.querySelector(".typing-row");
-  if (typingRow) typingRow.remove();
+  removeTypingRow(requestChatId);
   if (result.skipped) {
     sendingStatus[requestChatId] = false;
     if (requestChatId === currentChatId) updateSendingState();
     renderChat();
     return;
   }
+  /* await 之后重新获取会话，并确认末条仍是老师消息（可能已被删除/导入覆盖） */
+  msgs = getMsgs(requestChatId);
+  if (!msgs.length || msgs[msgs.length - 1].role !== "teacher") {
+    sendingStatus[requestChatId] = false;
+    if (requestChatId === currentChatId) updateSendingState();
+    return;
+  }
   pendingBounce[requestChatId] = true;
   msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
   saveMsgs();
-  setAffinity(currentChatId, getAffinity(currentChatId) + (result.delta || 0));
-  sendingStatus[currentChatId] = false;
-  updateSendingState();
-  renderChat(true);
-  updateAffinityUI(currentChatId);
-  showAffinityToast(result.delta);
-  renderConvList(document.getElementById("convSearchInput").value);
+  /* 全程使用 requestChatId：等待期间切换会话不再把好感度/锁状态写到别的角色头上 */
+  setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
+  sendingStatus[requestChatId] = false;
+  if (requestChatId === currentChatId) {
+    updateSendingState();
+    renderChat(true);
+    updateAffinityUI(requestChatId);
+    showAffinityToast(result.delta);
+    renderConvList(document.getElementById("convSearchInput").value);
+  }
 }
 function updateSendingState() {
   var bar = document.getElementById('chatInputBar');
@@ -2570,22 +2591,22 @@ async function sendMessage() {
   msgs.push({ role: "teacher", text: text, ts: Date.now() });
   saveMsgs();
   renderChat(true);
-  var typingHTML = '<div class="msg-row student typing-row">' +
-    avatarHTML(getChar(currentChatId)) +
-    '<div class="bubble typing-bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>' +
-  '</div>';
-  document.getElementById("chatBody").insertAdjacentHTML("beforeend", typingHTML);
-  var chatBody = document.getElementById("chatBody");
-  chatBody.scrollTop = chatBody.scrollHeight;
+  showTypingRow(currentChatId);
   var history = msgs.slice(0, -1);
   var requestChatId = currentChatId;
   var result = await fetchAIReply(requestChatId, text, history);
-  var typingRow = document.querySelector(".typing-row");
-  if (typingRow) typingRow.remove();
+  removeTypingRow(requestChatId);
   if (result.skipped) {
     sendingStatus[requestChatId] = false;
     if (requestChatId === currentChatId) updateSendingState();
     renderChat();
+    return;
+  }
+  /* await 之后重新获取会话引用：等待期间会话可能已被删除或导入覆盖 */
+  msgs = getMsgs(requestChatId);
+  if (!msgs.length || msgs[msgs.length - 1].role !== "teacher") {
+    sendingStatus[requestChatId] = false;
+    if (requestChatId === currentChatId) updateSendingState();
     return;
   }
   pendingBounce[requestChatId] = true;
@@ -2600,8 +2621,7 @@ async function sendMessage() {
     showAffinityToast(result.delta);
     renderConvList(document.getElementById("convSearchInput").value);
   } else {
-    var oldMsgs = getMsgs(requestChatId);
-    oldMsgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
+    msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
     saveMsgs();
     setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
     sendingStatus[requestChatId] = false;
@@ -2634,7 +2654,7 @@ function openCharEditor(id) {
   editorPendingAvatar = null;
   var isNew = !id;
   var char = isNew ? { name: "", fullName: "", school: "", persona: "", hobbies: [], color: "#FF88AA", initial: "" } : getChar(id);
-  var previewBg = char.color || "#999999";
+  var previewBg = safeColor(char.color);
   var previewTxt = getAvatarTextColor();
   var previewContent = (char.avatar && isValidUrl(char.avatar))
     ? '<img src="' + escapeAttr(char.avatar) + '" alt="">'
@@ -2721,7 +2741,7 @@ function openCharEditor(id) {
 }
 function exportData() {
   var data = {
-    version: "2.0.8",
+    version: "2.0.9",
     chars: DB.chars,
     msgs: DB.msgs,
     affinity: DB.affinity,
@@ -2737,27 +2757,36 @@ function exportData() {
   URL.revokeObjectURL(a.href);
   showToast("已导出");
 }
-/* 导入数据：字段校验 + 脏数据过滤，防止旧备份导致界面崩溃 */
+/* ID 白名单清洗：导入数据里的 id 只保留字母数字下划线和连字符，防止注入 HTML 属性 */
+function sanitizeId(id) {
+  return String(id).replace(/[^a-zA-Z0-9_-]/g, "_");
+}
 function normalizeImportData(data) {
   if (!data || typeof data !== "object") throw new Error("格式不对");
   if (!Array.isArray(data.chars)) throw new Error("格式不对：缺少角色列表");
-  var chars = [];
-  var seenIds = {};
-  data.chars.forEach(function(c) {
-    if (!c || typeof c !== "object" || !c.id || !c.name) return;
-    if (seenIds[c.id]) return;
-    seenIds[c.id] = true;
-    chars.push({
-      id: String(c.id),
+  function normChar(c, forcedId) {
+    return {
+      id: forcedId || sanitizeId(c.id),
       name: String(c.name),
       fullName: c.fullName ? String(c.fullName) : "",
       school: c.school ? String(c.school) : "",
       persona: c.persona ? String(c.persona) : "",
-      color: c.color ? String(c.color) : "#FF88AA",
+      color: safeColor(c.color) === "#999999" ? "#FF88AA" : safeColor(c.color),
       initial: c.initial ? String(c.initial) : String(c.name).charAt(0),
       avatar: (c.avatar && isValidUrl(c.avatar)) ? c.avatar : undefined,
       hobbies: Array.isArray(c.hobbies) ? c.hobbies : []
-    });
+    };
+  }
+  var chars = [];
+  var seenIds = {};
+  var idMap = {};
+  data.chars.forEach(function(c) {
+    if (!c || typeof c !== "object" || !c.id || !c.name) return;
+    var nid = sanitizeId(c.id);
+    if (seenIds[nid]) return;
+    seenIds[nid] = true;
+    idMap[String(c.id)] = nid;
+    chars.push(normChar(c));
   });
   if (!chars.length) throw new Error("没有有效角色数据");
   var msgs = {};
@@ -2766,7 +2795,7 @@ function normalizeImportData(data) {
       if (!data.msgs.hasOwnProperty(mid)) continue;
       var arr = data.msgs[mid];
       if (!Array.isArray(arr)) continue;
-      msgs[mid] = arr.filter(function(m) {
+      msgs[idMap[mid] || sanitizeId(mid)] = arr.filter(function(m) {
         return m && (m.role === "teacher" || m.role === "student") &&
           typeof m.text === "string" && typeof m.ts === "number";
       }).map(function(m) {
@@ -2781,17 +2810,40 @@ function normalizeImportData(data) {
     for (var aid in data.affinity) {
       if (!data.affinity.hasOwnProperty(aid)) continue;
       var av = Number(data.affinity[aid]);
-      if (!isNaN(av)) affinity[aid] = Math.max(0, Math.min(AFFINITY_MAX, Math.round(av)));
+      if (!isNaN(av)) affinity[idMap[aid] || sanitizeId(aid)] = Math.max(0, Math.min(AFFINITY_MAX, Math.round(av)));
     }
   }
   var pinned = [];
   if (Array.isArray(data.pinned)) {
     data.pinned.forEach(function(pid) {
-      if (typeof pid === "string" && pinned.indexOf(pid) < 0) pinned.push(pid);
+      if (typeof pid === "string" && pid) {
+        var npid = idMap[pid] || sanitizeId(pid);
+        if (pinned.indexOf(npid) < 0) pinned.push(npid);
+      }
     });
   }
   var deleted = {};
-  if (data.deleted && typeof data.deleted === "object") deleted = data.deleted;
+  if (data.deleted && typeof data.deleted === "object") {
+    for (var did in data.deleted) {
+      if (!data.deleted.hasOwnProperty(did)) continue;
+      var bk = data.deleted[did];
+      if (!bk || typeof bk !== "object") continue;
+      var entry = {};
+      if (Array.isArray(bk.msgs)) {
+        entry.msgs = bk.msgs.filter(function(m) {
+          return m && (m.role === "teacher" || m.role === "student") &&
+            typeof m.text === "string" && typeof m.ts === "number";
+        });
+      }
+      if (typeof bk.affinity === "number") {
+        entry.affinity = Math.max(0, Math.min(AFFINITY_MAX, Math.round(bk.affinity)));
+      }
+      if (bk.char && typeof bk.char === "object" && bk.char.name) {
+        entry.char = normChar(bk.char, idMap[did] || sanitizeId(did));
+      }
+      if (entry.msgs || entry.char) deleted[idMap[did] || sanitizeId(did)] = entry;
+    }
+  }
   return { chars: chars, msgs: msgs, affinity: affinity, pinned: pinned, deleted: deleted };
 }
 function importData(file) {
@@ -2830,7 +2882,6 @@ function importData(file) {
   };
   reader.readAsText(file);
 }
-/* 系统主题变化时，重新渲染所有头像文字颜色 */
 function refreshAvatarColors() {
   var convInput = document.getElementById("convSearchInput");
   if (convInput) renderConvList(convInput.value);
@@ -2874,6 +2925,7 @@ function bindGlobalEvents() {
   document.getElementById("sendBtn").addEventListener("click", sendMessage);
   var msgInput = document.getElementById("msgInput");
   msgInput.addEventListener("keydown", function(e) {
+    if (e.isComposing || e.keyCode === 229) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
@@ -2933,6 +2985,7 @@ function bindGlobalEvents() {
       localStorage.removeItem(STORAGE_KEYS.affinity);
       localStorage.removeItem(STORAGE_KEYS.pinned);
       localStorage.removeItem("momotalk_deleted");
+      localStorage.removeItem(STORAGE_KEYS.defaultsAdded);
       loadData();
       renderConvList("");
       renderCharProfileList();
@@ -2940,7 +2993,6 @@ function bindGlobalEvents() {
     });
   });
 }
-/* 底部导航玻璃药丸：点击切换时滑动 */
 function bindNavPill() {
   var nav = document.getElementById("bottomNav");
   if (!nav) return;
