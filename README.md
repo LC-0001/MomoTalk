@@ -61,7 +61,7 @@ python3 -m http.server 8000
 
 ## 版本
 
-![Version](https://img.shields.io/badge/版本-v2.0.9-FF88AA)
+![License](https://img.shields.io/badge/许可-MIT-FF88AA)
 
 ## 更新日志
 
