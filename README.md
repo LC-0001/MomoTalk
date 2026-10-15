@@ -59,10 +59,6 @@ python3 -m http.server 8000
 《蔚蓝档案》角色及相关内容版权归 Nexon 所有。
 仅供学习交流，请勿商业使用。如有侵权请联系删除。
 
-## 版本
-
-![License](https://img.shields.io/badge/许可-MIT-FF88AA)
-
 ## 更新日志
 
 ### v2.0.9 (2026-10-15)
@@ -76,3 +72,5 @@ python3 -m http.server 8000
 
 - 项目由 LC-0001 发起并构思
 - 部分代码与文档在 AI 辅助下完成
+
+![License](https://img.shields.io/badge/许可-MIT-FF88AA)
