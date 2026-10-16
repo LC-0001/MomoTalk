@@ -1257,7 +1257,7 @@ body:not(.no-glass) .crop-mask {
 <div class="more-list">
   <a href="about.html" class="more-item" style="text-decoration:none;color:inherit;">
     <div class="item-icon" style="background:#999;">i</div>
-    <div class="item-label">Momo Talk v2.0.9 (AI制作)</div>
+    <div class="item-label">Momo Talk v2.0.10 (AI制作)</div>
     <div class="item-arrow"></div>
   </a>
 </div>
@@ -1560,12 +1560,15 @@ function deleteApiKey() {
 var FALLBACK_REPLY = "老师，您的token用完了哦~";
 var STORAGE_KEYS = {
   chars: "momotalk_chars",
-  msgs: "momotalk_msgs",
+  msgs: "momotalk_msgs",            /* 旧 key，保留一版本周期，勿删 */
+  msgsSplit: "momotalk_msgs_split", /* 拆 key 迁移标记 */
+  msgsPrefix: "momotalk_msgs_",     /* 新 key 前缀 */
   affinity: "momotalk_affinity",
   migrated: "momotalk_affinity_migrated",
   pinned: "momotalk_pinned",
   glass: "momotalk_glass",
-  defaultsAdded: "momotalk_defaults_added"
+  defaultsAdded: "momotalk_defaults_added",
+  memories: "momotalk_memories"
 };
 var DEFAULT_CHARS = [
   {
@@ -1600,7 +1603,25 @@ var DEFAULT_CHARS = [
   }
 ];
 var TEACHER = { id: "teacher", name: "老师", color: "#FF88AA", initial: "师" };
-var DB = { chars: [], msgs: {}, affinity: {}, pinned: [] };
+
+/* ============================================================
+ * memories 不变量清单（改动前必读）
+ *
+ * 1. DB.memories[charId] 存在性由首次 summarizeHistory 调用建立
+ *    （占位对象 { summary: "", upToIndex: 0, updatedAt: 0 }）。
+ * 2. 所有对 DB.memories[charId] 的写入必须整体替换对象，禁止原地改字段：
+ *        DB.memories[id] = { ... }      // ✅
+ *        DB.memories[id].upToIndex = x  // ❌ 会让引用校验静默失效
+ * 3. upToIndex 单调不减，且 ≤ DB.msgs[charId].length。
+ * 4. 回溯、导入、清空 都要 (a) 替换对象 (b) memoriesGeneration[id] += 1。
+ * 5. summarizing[charId] 锁内不得让 upToIndex 被外部改动
+ *    （飞行中的摘要写回前会双重校验：引用 + generation）。
+ * 6. loadData 中拆 key 迁移 (migrateMsgsToSplit) 必须先于 msgs 预载。
+ * ============================================================ */
+var DB = { chars: [], msgs: {}, affinity: {}, pinned: [], memories: {} };
+var memoriesGeneration = {};
+var summarizing = {};
+
 var deletedBackups = {};
 try { deletedBackups = JSON.parse(localStorage.getItem("momotalk_deleted")) || {}; } catch(e) { deletedBackups = {}; }
 function saveDeletedBackups() {
@@ -1632,26 +1653,63 @@ function toggleGlass() {
   applyGlassState();
   showToast(enabled ? "毛玻璃效果已关闭" : "毛玻璃效果已开启");
 }
+/* safeSetItem 返回布尔值，调用方可判断是否成功 */
 function safeSetItem(key, value) {
   try {
     localStorage.setItem(key, value);
+    return true;
   } catch (e) {
-    if (e.name === 'QuotaExceededError') {
-      showToast("存储空间已满，无法保存。请删除一些聊天记录或清空数据。");
-    } else {
-      console.error("Storage error:", e);
+    if (e && (e.name === "QuotaExceededError" || e.code === 22)) {
+      showToast("存储空间已满，请到「更多」→「导出备份」后清理旧会话");
+      return false;
     }
+    console.error("Storage error:", e);
+    return false;
   }
+}
+/* ---------- 消息按角色拆 key ---------- */
+function loadMsgs(charId) {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.msgsPrefix + charId)) || [];
+  } catch (e) { return []; }
+}
+function saveMsgs(charId) {
+  if (!charId) charId = currentChatId;
+  if (!charId) return false;
+  var msgs = DB.msgs[charId] || [];
+  return safeSetItem(STORAGE_KEYS.msgsPrefix + charId, JSON.stringify(msgs));
+}
+function deleteMsgsKey(charId) {
+  try { localStorage.removeItem(STORAGE_KEYS.msgsPrefix + charId); } catch (e) {}
+}
+/* 拆 key 迁移：旧 key momotalk_msgs 保留一版本周期，暂不删除 */
+function migrateMsgsToSplit() {
+  if (localStorage.getItem(STORAGE_KEYS.msgsSplit) === "1") return;
+  try {
+    var old = JSON.parse(localStorage.getItem(STORAGE_KEYS.msgs)) || {};
+    for (var id in old) {
+      if (old.hasOwnProperty(id) && Array.isArray(old[id])) {
+        safeSetItem(STORAGE_KEYS.msgsPrefix + id, JSON.stringify(old[id]));
+      }
+    }
+    localStorage.setItem(STORAGE_KEYS.msgsSplit, "1");
+    localStorage.setItem("momotalk_msgs_backup_ts", Date.now().toString());
+  } catch (e) {
+    /* 迁移失败，不写标记，下次启动重试 */
+  }
+}
+function saveMemories() {
+  return safeSetItem(STORAGE_KEYS.memories, JSON.stringify(DB.memories));
 }
 function loadData() {
   try { DB.chars = JSON.parse(localStorage.getItem(STORAGE_KEYS.chars)) || JSON.parse(JSON.stringify(DEFAULT_CHARS)); }
   catch(e) { DB.chars = JSON.parse(JSON.stringify(DEFAULT_CHARS)); }
-  try { DB.msgs = JSON.parse(localStorage.getItem(STORAGE_KEYS.msgs)) || {}; }
-  catch(e) { DB.msgs = {}; }
   try { DB.affinity = JSON.parse(localStorage.getItem(STORAGE_KEYS.affinity)) || {}; }
   catch(e) { DB.affinity = {}; }
   try { DB.pinned = JSON.parse(localStorage.getItem(STORAGE_KEYS.pinned)) || []; }
   catch(e) { DB.pinned = []; }
+  try { DB.memories = JSON.parse(localStorage.getItem(STORAGE_KEYS.memories)) || {}; }
+  catch(e) { DB.memories = {}; }
   if (!localStorage.getItem(STORAGE_KEYS.migrated)) {
     for (var k in DB.affinity) {
       if (DB.affinity.hasOwnProperty(k)) {
@@ -1685,11 +1743,17 @@ function loadData() {
     }
   });
   if (personaChanged) saveChars();
+
+  /* 顺序硬约束：迁移必须先于预载 */
+  migrateMsgsToSplit();
+  DB.msgs = {};
+  DB.chars.forEach(function(c) {
+    DB.msgs[c.id] = loadMsgs(c.id);
+  });
 }
-function saveChars() { safeSetItem(STORAGE_KEYS.chars, JSON.stringify(DB.chars)); }
-function saveMsgs() { safeSetItem(STORAGE_KEYS.msgs, JSON.stringify(DB.msgs)); }
-function saveAffinity() { safeSetItem(STORAGE_KEYS.affinity, JSON.stringify(DB.affinity)); }
-function savePinned() { safeSetItem(STORAGE_KEYS.pinned, JSON.stringify(DB.pinned)); }
+function saveChars() { return safeSetItem(STORAGE_KEYS.chars, JSON.stringify(DB.chars)); }
+function saveAffinity() { return safeSetItem(STORAGE_KEYS.affinity, JSON.stringify(DB.affinity)); }
+function savePinned() { return safeSetItem(STORAGE_KEYS.pinned, JSON.stringify(DB.pinned)); }
 function getChar(id) {
   for (var i = 0; i < DB.chars.length; i++) { if (DB.chars[i].id === id) return DB.chars[i]; }
   return null;
@@ -1811,11 +1875,75 @@ async function callAIAPI(apiKey, messages) {
   if (data.choices && data.choices[0] && data.choices[0].message) return data.choices[0].message.content;
   throw new Error('API 返回数据异常');
 }
-function trimHistory(history) {
-  if (history.length <= 24) return history;
-  return history.slice(-24);
+/* ---------- 记忆系统 ---------- */
+function shouldSummarize(charId) {
+  var mem = DB.memories[charId] || { upToIndex: 0 };
+  var msgs = DB.msgs[charId] || [];
+  return (msgs.length - (mem.upToIndex || 0)) > 30;
 }
-async function fetchAIReply(characterId, userMessage, conversationHistory) {
+async function summarizeHistory(charId) {
+  var apiKey = getApiKey();
+  if (!apiKey || summarizing[charId]) return;
+
+  /* 首次调用时建立占位对象，使引用快照路径完整 */
+  if (!DB.memories[charId]) {
+    DB.memories[charId] = { summary: "", upToIndex: 0, updatedAt: 0 };
+    memoriesGeneration[charId] = (memoriesGeneration[charId] || 0) + 1;
+    saveMemories();
+  }
+  var memSnapshot = DB.memories[charId];
+  var genSnapshot = memoriesGeneration[charId] || 0;
+
+  var msgs = DB.msgs[charId] || [];
+  var start = memSnapshot.upToIndex || 0;
+  var end = start + 15;
+  if (end > msgs.length) return;
+
+  var char = getChar(charId);
+  if (!char) return;
+
+  summarizing[charId] = true;
+  try {
+    var batch = msgs.slice(start, end);
+    var prompt = "请从以下对话中提取要点，用简洁的条目列出（每条一行，最多 5 条）：\n" +
+      "- 老师提到的偏好、习惯、个人信息\n" +
+      "- 双方约定或承诺过的事\n" +
+      "- 情绪或关系的显著变化\n" +
+      "只输出条目，不要编号前缀，不要解释。若某类无内容可省略。\n\n" +
+      (memSnapshot.summary ? "【已有记忆，请合并更新，不要简单追加】\n" + memSnapshot.summary + "\n\n" : "") +
+      "【新增对话】\n";
+    batch.forEach(function(m) {
+      prompt += (m.role === "teacher" ? "老师" : char.name) + "：" + m.text + "\n";
+    });
+
+    var reply = await callAIAPI(apiKey, [
+      { role: "system", content: "你是对话摘要助手，只输出要点列表，不加任何前缀解释。" },
+      { role: "user", content: prompt }
+    ]);
+
+    /* 双重校验：引用未变 + generation 未变。
+       任一变化都说明飞行期间发生了重置/清空/导入，丢弃这次结果。 */
+    if (DB.memories[charId] !== memSnapshot) return;
+    if ((memoriesGeneration[charId] || 0) !== genSnapshot) return;
+
+    DB.memories[charId] = {
+      summary: String(reply).trim(),
+      upToIndex: end,
+      updatedAt: Date.now()
+    };
+    memoriesGeneration[charId] = (memoriesGeneration[charId] || 0) + 1;
+    saveMemories();
+  } catch (e) {
+    /* 静默失败：水位不推进，下次触发自动重试 */
+  } finally {
+    summarizing[charId] = false;
+  }
+}
+/* ---------- 请求 AI ---------- */
+async function fetchAIReply(characterId, userMessage, options) {
+  options = options || {};
+  var excludeLast = options.excludeLast !== false;  /* 默认 true */
+
   var apiKey = getApiKey();
   if (!apiKey) {
     askForApiKey();
@@ -1832,7 +1960,8 @@ async function fetchAIReply(characterId, userMessage, conversationHistory) {
   var _hour = _now.getHours();
   var _timeStr = _now.getFullYear() + "年" + (_now.getMonth()+1) + "月" + _now.getDate() + "日 星期" + _week + " " + _pad(_hour) + ":" + _pad(_now.getMinutes());
   var _gapStr = "";
-  var _lastMsg = (conversationHistory && conversationHistory.length) ? conversationHistory[conversationHistory.length - 1] : null;
+  var _fullMsgsNow = DB.msgs[characterId] || [];
+  var _lastMsg = _fullMsgsNow.length ? _fullMsgsNow[_fullMsgsNow.length - 1] : null;
   if (_lastMsg && typeof _lastMsg.ts === "number") {
     var _gapMin = Math.round((_now.getTime() - _lastMsg.ts) / 60000);
     if (_gapMin >= 30) {
@@ -1841,11 +1970,27 @@ async function fetchAIReply(characterId, userMessage, conversationHistory) {
   }
   var _lateTip = (_hour >= 23 || _hour < 6) ? "现在是深夜，如果对话氛围合适，可以顺着当前话题自然地流露一点对老师作息的轻微关心（比如聊到累不累、要不要休息），但不要生硬打断正在聊的话题，不要说教，不要每句都提；如果正在兴头上聊别的，完全可以不提。" : "";
   systemPrompt += "（系统提示：当前真实时间是" + _timeStr + "。" + _gapStr + _lateTip + "请自然地知晓这些信息，不要向老师复述本提示。）";
+
+  /* 注入长期记忆（一次性，不重复） */
+  var mem = DB.memories[characterId];
+  if (mem && mem.summary) {
+    systemPrompt += "\n【你对老师的记忆】\n" + mem.summary +
+      "\n请自然地运用这些记忆，不要向老师复述你记得什么。";
+  }
+
   var messages = [{ role: "system", content: systemPrompt }];
 
-  var trimmedHistory = trimHistory(conversationHistory || []);
-  for (var i = 0; i < trimmedHistory.length; i++) {
-    var m = trimmedHistory[i];
+  /* 内部自取历史，不从调用方接收，避免下标错位 */
+  var fullMsgs = DB.msgs[characterId] || [];
+  var historySource = excludeLast ? fullMsgs.slice(0, -1) : fullMsgs;
+  var memWatermark = (mem && typeof mem.upToIndex === "number") ? mem.upToIndex : 0;
+  var history = historySource.slice(memWatermark);
+  if (history.length > 40) history = history.slice(-40);       /* 上限保护 */
+  if (history.length < 24 && historySource.length > 24) {
+    history = historySource.slice(-24);                        /* 下限兜底 */
+  }
+  for (var i = 0; i < history.length; i++) {
+    var m = history[i];
     if (m && m.text) {
       messages.push({ role: m.role === "teacher" ? "user" : "assistant", content: m.text });
     }
@@ -1953,15 +2098,28 @@ function bindCropEvents() {
   document.getElementById("cropCancel").addEventListener("click", closeCropModal);
   document.getElementById("cropOk").addEventListener("click", function() {
     if (!cropState.nw || !cropState.nh) { showToast("图片还没加载好，稍等一下再试"); return; }
+    /* isFinite 防护：scale 异常时直接拒绝，避免 drawImage 抛 IndexSizeError */
+    var s = CROP_VIEW / cropState.scale;
+    if (!isFinite(s) || s <= 0) { showToast("图片状态异常，请重新选择"); return; }
+    var sx = -cropState.x / cropState.scale;
+    var sy = -cropState.y / cropState.scale;
+    if (!isFinite(sx) || !isFinite(sy)) { showToast("图片状态异常，请重新选择"); return; }
+
     var canvas = document.createElement("canvas");
     canvas.width = 128; canvas.height = 128;
     var ctx = canvas.getContext("2d");
-    var s = CROP_VIEW / cropState.scale;
-    var sx = -cropState.x / cropState.scale;
-    var sy = -cropState.y / cropState.scale;
+    /* 先填白底：避免 PNG 透明区域在 JPEG 下变黑 */
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 128, 128);
     ctx.drawImage(img, sx, sy, s, s, 0, 0, 128, 128);
-    var dataURL = canvas.toDataURL("image/jpeg", 0.85);
-    if (dataURL.length > 60 * 1024) dataURL = canvas.toDataURL("image/jpeg", 0.7);
+
+    /* 压缩到 ≤ 8KB（头像单张 128×128，正常远小于此，但防御性迭代） */
+    var dataURL = canvas.toDataURL("image/jpeg", 0.7);
+    var tries = 0;
+    while (dataURL.length > 8 * 1024 && tries < 3) {
+      dataURL = canvas.toDataURL("image/jpeg", 0.5 - tries * 0.1);
+      tries++;
+    }
     closeCropModal();
     applyAvatarPreview(dataURL);
   });
@@ -2196,9 +2354,14 @@ function renderConvList(filter) {
         saveDeletedBackups();
         delete DB.msgs[id];
         delete DB.affinity[id];
+        /* 记忆系统：整体替换 + generation +1 */
+        delete DB.memories[id];
+        memoriesGeneration[id] = (memoriesGeneration[id] || 0) + 1;
+        saveMemories();
+        deleteMsgsKey(id);
         var pIdx = DB.pinned.indexOf(id);
         if (pIdx >= 0) { DB.pinned.splice(pIdx, 1); savePinned(); }
-        saveMsgs(); saveAffinity();
+        saveAffinity();
         renderConvList(document.getElementById("convSearchInput").value);
         showToast("已删除，可在「更多」页面恢复");
       });
@@ -2280,7 +2443,7 @@ function restoreDeletedConversation(id) {
       DB.chars.push(JSON.parse(JSON.stringify(bk.char)));
       saveChars();
     }
-    if (bk.msgs) { DB.msgs[id] = bk.msgs; saveMsgs(); }
+    if (bk.msgs) { DB.msgs[id] = bk.msgs; saveMsgs(id); }
     if (bk.affinity !== undefined) { DB.affinity[id] = bk.affinity; saveAffinity(); }
     delete deletedBackups[id];
     saveDeletedBackups();
@@ -2463,7 +2626,14 @@ async function handleRetrace(action, idx) {
       if (m.role === "student" && typeof m.affDelta === "number") rollback += m.affDelta;
     });
     if (rollback) setAffinity(currentChatId, getAffinity(currentChatId) - rollback);
-    saveMsgs();
+    saveMsgs(currentChatId);
+    /* 回溯截断后校正记忆水位：若水位落在已删区域，重置记忆（整体替换 + generation +1） */
+    var mem = DB.memories[currentChatId];
+    if (mem && msgs.length <= (mem.upToIndex || 0)) {
+      DB.memories[currentChatId] = { summary: "", upToIndex: msgs.length, updatedAt: 0 };
+      memoriesGeneration[currentChatId] = (memoriesGeneration[currentChatId] || 0) + 1;
+      saveMemories();
+    }
     renderChat();
     showToast("已回溯到此处");
     renderConvList(document.getElementById("convSearchInput").value);
@@ -2474,40 +2644,41 @@ async function handleRetrace(action, idx) {
   sendingStatus[currentChatId] = true;
   updateSendingState();
   var userPrompt = "";
-  var history = [];
   var removedMsg = null;
+  var excludeLast = true;
   if (action === "retry") {
     removedMsg = msgs.splice(msgs.length - 1, 1)[0];
     if (removedMsg && typeof removedMsg.affDelta === "number" && removedMsg.affDelta) {
       setAffinity(currentChatId, getAffinity(currentChatId) - removedMsg.affDelta);
     }
-    saveMsgs();
+    saveMsgs(currentChatId);
     if (!msgs.length || msgs[msgs.length - 1].role !== "teacher") {
       if (removedMsg && typeof removedMsg.affDelta === "number" && removedMsg.affDelta) {
         setAffinity(currentChatId, getAffinity(currentChatId) + removedMsg.affDelta);
       }
       msgs.push(removedMsg);
-      saveMsgs();
+      saveMsgs(currentChatId);
       sendingStatus[currentChatId] = false;
       updateSendingState();
       return;
     }
     var teacherMsg = msgs[msgs.length - 1];
     userPrompt = teacherMsg.text;
-    history = msgs.slice(0, -1);
+    /* excludeLast 默认 true，无需显式传 */
   } else if (action === "continue") {
     userPrompt = "（请接着你刚才的话继续说）";
-    history = msgs.slice();
+    excludeLast = false;  /* continue 需要 AI 看到自己最后一句 */
   }
   renderChat();
   showTypingRow(currentChatId);
   var requestChatId = currentChatId;
-  var result = await fetchAIReply(requestChatId, userPrompt, history);
+  var opts = excludeLast ? undefined : { excludeLast: false };
+  var result = await fetchAIReply(requestChatId, userPrompt, opts);
   removeTypingRow(requestChatId);
   if (result.skipped) {
     if (action === "retry" && removedMsg && DB.msgs[requestChatId]) {
       DB.msgs[requestChatId].push(removedMsg);
-      saveMsgs();
+      saveMsgs(requestChatId);
     }
     sendingStatus[requestChatId] = false;
     if (requestChatId === currentChatId) updateSendingState();
@@ -2523,21 +2694,20 @@ async function handleRetrace(action, idx) {
     return;
   }
   pendingBounce[requestChatId] = true;
+  curMsgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
+  saveMsgs(requestChatId);
+  setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
+  sendingStatus[requestChatId] = false;
   if (requestChatId === currentChatId) {
-    curMsgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
-    saveMsgs();
-    setAffinity(currentChatId, getAffinity(currentChatId) + (result.delta || 0));
-    sendingStatus[currentChatId] = false;
     updateSendingState();
     renderChat(true);
-    updateAffinityUI(currentChatId);
+    updateAffinityUI(requestChatId);
     showAffinityToast(result.delta);
     renderConvList(document.getElementById("convSearchInput").value);
-  } else {
-    curMsgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
-    saveMsgs();
-    setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
-    sendingStatus[requestChatId] = false;
+  }
+  /* 后台触发摘要（不 await，不阻塞主流程） */
+  if (shouldSummarize(requestChatId)) {
+    summarizeHistory(requestChatId);
   }
 }
 async function regenerateReply() {
@@ -2549,7 +2719,7 @@ async function regenerateReply() {
   updateSendingState();
   showTypingRow(currentChatId);
   var requestChatId = currentChatId;
-  var result = await fetchAIReply(requestChatId, last.text, msgs.slice(0, -1));
+  var result = await fetchAIReply(requestChatId, last.text);
   removeTypingRow(requestChatId);
   if (result.skipped) {
     sendingStatus[requestChatId] = false;
@@ -2557,7 +2727,6 @@ async function regenerateReply() {
     renderChat();
     return;
   }
-  /* await 之后重新获取会话，并确认末条仍是老师消息（可能已被删除/导入覆盖） */
   msgs = getMsgs(requestChatId);
   if (!msgs.length || msgs[msgs.length - 1].role !== "teacher") {
     sendingStatus[requestChatId] = false;
@@ -2566,8 +2735,7 @@ async function regenerateReply() {
   }
   pendingBounce[requestChatId] = true;
   msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
-  saveMsgs();
-  /* 全程使用 requestChatId：等待期间切换会话不再把好感度/锁状态写到别的角色头上 */
+  saveMsgs(requestChatId);
   setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
   sendingStatus[requestChatId] = false;
   if (requestChatId === currentChatId) {
@@ -2576,6 +2744,9 @@ async function regenerateReply() {
     updateAffinityUI(requestChatId);
     showAffinityToast(result.delta);
     renderConvList(document.getElementById("convSearchInput").value);
+  }
+  if (shouldSummarize(requestChatId)) {
+    summarizeHistory(requestChatId);
   }
 }
 function updateSendingState() {
@@ -2605,12 +2776,12 @@ async function sendMessage() {
   input.style.height = "auto";
   var msgs = getMsgs(currentChatId);
   msgs.push({ role: "teacher", text: text, ts: Date.now() });
-  saveMsgs();
+  saveMsgs(currentChatId);
   renderChat(true);
   showTypingRow(currentChatId);
-  var history = msgs.slice(0, -1);
   var requestChatId = currentChatId;
-  var result = await fetchAIReply(requestChatId, text, history);
+  /* excludeLast 默认 true：内部会排除 DB 中最后一条（即刚 push 的这条） */
+  var result = await fetchAIReply(requestChatId, text);
   removeTypingRow(requestChatId);
   if (result.skipped) {
     sendingStatus[requestChatId] = false;
@@ -2618,7 +2789,6 @@ async function sendMessage() {
     renderChat();
     return;
   }
-  /* await 之后重新获取会话引用：等待期间会话可能已被删除或导入覆盖 */
   msgs = getMsgs(requestChatId);
   if (!msgs.length || msgs[msgs.length - 1].role !== "teacher") {
     sendingStatus[requestChatId] = false;
@@ -2626,21 +2796,19 @@ async function sendMessage() {
     return;
   }
   pendingBounce[requestChatId] = true;
+  msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
+  saveMsgs(requestChatId);
+  setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
+  sendingStatus[requestChatId] = false;
   if (requestChatId === currentChatId) {
-    msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
-    saveMsgs();
-    setAffinity(currentChatId, getAffinity(currentChatId) + (result.delta || 0));
-    sendingStatus[currentChatId] = false;
     updateSendingState();
     renderChat(true);
-    updateAffinityUI(currentChatId);
+    updateAffinityUI(requestChatId);
     showAffinityToast(result.delta);
     renderConvList(document.getElementById("convSearchInput").value);
-  } else {
-    msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
-    saveMsgs();
-    setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
-    sendingStatus[requestChatId] = false;
+  }
+  if (shouldSummarize(requestChatId)) {
+    summarizeHistory(requestChatId);
   }
 }
 function openModal(title, bodyHTML, footerHTML) {
@@ -2721,6 +2889,7 @@ function openCharEditor(id) {
       };
       if (editorPendingAvatar) newChar.avatar = editorPendingAvatar;
       DB.chars.push(newChar);
+      DB.msgs[newChar.id] = [];
       saveChars();
     } else {
       char.name = name;
@@ -2745,9 +2914,13 @@ function openCharEditor(id) {
         if (idx >= 0) DB.chars.splice(idx, 1);
         delete DB.msgs[char.id];
         delete DB.affinity[char.id];
+        delete DB.memories[char.id];
+        memoriesGeneration[char.id] = (memoriesGeneration[char.id] || 0) + 1;
+        saveMemories();
+        deleteMsgsKey(char.id);
         var pIdx = DB.pinned.indexOf(char.id);
         if (pIdx >= 0) { DB.pinned.splice(pIdx, 1); savePinned(); }
-        saveChars(); saveMsgs(); saveAffinity();
+        saveChars(); saveAffinity();
         showToast("已删除");
         renderCharProfileList();
         renderConvList(document.getElementById("convSearchInput").value);
@@ -2757,12 +2930,13 @@ function openCharEditor(id) {
 }
 function exportData() {
   var data = {
-    version: "2.0.9",
+    version: "2.0.10",
     chars: DB.chars,
     msgs: DB.msgs,
     affinity: DB.affinity,
     pinned: DB.pinned,
     deleted: deletedBackups,
+    memories: DB.memories,
     exportTime: new Date().toISOString()
   };
   var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -2860,7 +3034,26 @@ function normalizeImportData(data) {
       if (entry.msgs || entry.char) deleted[idMap[did] || sanitizeId(did)] = entry;
     }
   }
-  return { chars: chars, msgs: msgs, affinity: affinity, pinned: pinned, deleted: deleted };
+  /* memories：字段校验 + upToIndex clamp 到消息条数 */
+  var memories = {};
+  if (data.memories && typeof data.memories === "object") {
+    for (var memId in data.memories) {
+      if (!data.memories.hasOwnProperty(memId)) continue;
+      var me = data.memories[memId];
+      if (!me || typeof me !== "object") continue;
+      var nid2 = idMap[memId] || sanitizeId(memId);
+      var summary = typeof me.summary === "string" ? me.summary : "";
+      var upToIndex = typeof me.upToIndex === "number" ? me.upToIndex : 0;
+      var msgCount = (msgs[nid2] || []).length;
+      upToIndex = Math.max(0, Math.min(upToIndex, msgCount));
+      memories[nid2] = {
+        summary: summary,
+        upToIndex: upToIndex,
+        updatedAt: typeof me.updatedAt === "number" ? me.updatedAt : 0
+      };
+    }
+  }
+  return { chars: chars, msgs: msgs, affinity: affinity, pinned: pinned, deleted: deleted, memories: memories };
 }
 function importData(file) {
   var reader = new FileReader();
@@ -2873,8 +3066,18 @@ function importData(file) {
         DB.msgs = data.msgs;
         DB.affinity = data.affinity;
         DB.pinned = data.pinned;
+        DB.memories = data.memories || {};
         deletedBackups = data.deleted || {};
-        saveChars(); saveMsgs(); saveAffinity(); savePinned(); saveDeletedBackups();
+        /* 导入覆盖所有 memories：generation 全部 +1，丢弃飞行中摘要 */
+        memoriesGeneration = {};
+        DB.chars.forEach(function(c) {
+          memoriesGeneration[c.id] = (memoriesGeneration[c.id] || 0) + 1;
+        });
+        saveChars(); saveAffinity(); savePinned(); saveDeletedBackups(); saveMemories();
+        /* 所有角色 msgs 写入新 key */
+        DB.chars.forEach(function(c) {
+          saveMsgs(c.id);
+        });
         showToast("导入成功");
         renderConvList("");
         renderCharProfileList();
@@ -2996,12 +3199,19 @@ function bindGlobalEvents() {
   document.getElementById("btnRestore").addEventListener("click", renderDeletedList);
   document.getElementById("btnClear").addEventListener("click", function() {
     showConfirm("清空数据", "确定清空全部本地数据吗？此操作不可恢复，建议先导出备份！", function() {
+      /* 清理所有角色的 msgs 分 key */
+      DB.chars.forEach(function(c) { deleteMsgsKey(c.id); });
       localStorage.removeItem(STORAGE_KEYS.chars);
       localStorage.removeItem(STORAGE_KEYS.msgs);
+      localStorage.removeItem(STORAGE_KEYS.msgsSplit);
       localStorage.removeItem(STORAGE_KEYS.affinity);
       localStorage.removeItem(STORAGE_KEYS.pinned);
+      localStorage.removeItem(STORAGE_KEYS.memories);
       localStorage.removeItem("momotalk_deleted");
       localStorage.removeItem(STORAGE_KEYS.defaultsAdded);
+      localStorage.removeItem("momotalk_msgs_backup_ts");
+      memoriesGeneration = {};
+      summarizing = {};
       loadData();
       renderConvList("");
       renderCharProfileList();
