@@ -101,20 +101,33 @@ input, textarea { font-family: inherit; outline: none; border: none; }
   transform: rotate(35deg);
   box-shadow: inset 0 -1px 1px rgba(0,80,0,0.3);
 }
+
+/* ==========================================
+   修复闪白核心：父容器兜底
+   ========================================== */
 .page-container {
   flex: 1;
   position: relative;
   overflow: hidden;
+  background: #fff; /* 兜底白底 */
 }
+
 .page {
   position: absolute;
   inset: 0;
-  background: #fff;
+  background: transparent; /* 交出背景控制权，防闪白 */
   display: none;
   flex-direction: column;
   overflow: hidden;
 }
 .page.active { display: flex; }
+
+/* 聊天页保留独立浅灰底色，双类提升优先级 */
+.page.chat-page {
+  background: #f6f6f6; 
+}
+/* ========================================== */
+
 @keyframes pageInRight { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pageInLeft  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pageFade    { from { opacity: 0; } to { opacity: 1; } }
@@ -229,7 +242,7 @@ input, textarea { font-family: inherit; outline: none; border: none; }
 .char-card .avatar { width: 62px; height: 62px; font-size: 22px; }
 .char-card .char-name { font-size: 13px; color: #333; text-align: center; }
 .char-card .char-school { font-size: 10px; color: #aaa; text-align: center; }
-.chat-page { background: #f6f6f6; }
+
 .chat-header {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -688,7 +701,7 @@ body.no-glass .modal {
 }
 body.no-glass .modal::before,
 body.no-glass .modal::after {
-  display: none; /* 关闭高光和噪点 */
+  display: none;
 }
 body.no-glass .modal-body input,
 body.no-glass .modal-body textarea {
@@ -1151,7 +1164,14 @@ body:not(.no-glass) .crop-mask {
 @media (prefers-color-scheme: dark) {
   html, body { background: #333; }
   body { background: #333; }
+  
+  /* 修复闪白：暗黑模式下的父容器兜底 */
+  .page-container { background: #333; }
+  
   .chat-page { background: #222; }
+  /* 同步修正：聊天页暗黑背景双类覆盖，确保权重一致 */
+  .page.chat-page { background: #222; }
+
   .chat-header { background: #333; border-bottom-color: #444; }
   .chat-input-bar { background: #333; border-top-color: #444; }
   .chat-input-bar textarea { background: #444; color: #eee; }
@@ -1342,7 +1362,7 @@ body:not(.no-glass) .crop-mask {
 <div class="more-list">
   <a href="about.html" class="more-item" style="text-decoration:none;color:inherit;">
     <div class="item-icon" style="background:#999;">i</div>
-    <div class="item-label">Momo Talk v2.1.2 (AI制作)</div>
+    <div class="item-label">Momo Talk v2.1.3 (AI制作)</div>
     <div class="item-arrow"></div>
   </a>
 </div>
@@ -3016,7 +3036,7 @@ function openCharEditor(id) {
 }
 function exportData() {
   var data = {
-    version: "2.1.2",
+    version: "2.1.3",
     chars: DB.chars,
     msgs: DB.msgs,
     affinity: DB.affinity,
