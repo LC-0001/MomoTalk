@@ -69,38 +69,15 @@ input, textarea { font-family: inherit; outline: none; border: none; }
   align-items: center;
   gap: 8px;
 }
-.icon-peach {
-  width: 26px;
-  height: 26px;
-  background: radial-gradient(circle at 35% 30%, #ffb3c8 0%, #ff7aa3 60%, #e85d8a 100%);
-  border-radius: 50%;
-  position: relative;
-  box-shadow: inset -2px -3px 4px rgba(180,40,80,0.25);
+
+/* ===== 这里帮你替换成了图片的样式 ===== */
+.icon-peach-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain; /* 确保图片不变形 */
   flex-shrink: 0;
 }
-.icon-peach::before {
-  content: "";
-  position: absolute;
-  top: -5px;
-  left: 50%;
-  width: 3px;
-  height: 7px;
-  background: #7a4a2a;
-  transform: translateX(-50%) rotate(-8deg);
-  border-radius: 2px;
-}
-.icon-peach::after {
-  content: "";
-  position: absolute;
-  top: -4px;
-  left: 54%;
-  width: 10px;
-  height: 7px;
-  background: #6cbf5a;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(35deg);
-  box-shadow: inset 0 -1px 1px rgba(0,80,0,0.3);
-}
+/* ==================================== */
 
 /* ==========================================
    修复闪白核心：父容器兜底
@@ -1265,8 +1242,9 @@ body:not(.no-glass) .crop-mask {
 <div id="app">
   <div class="top-bar" id="topBar">
     <div class="title" id="topTitle">
-      <span class="icon-peach"></span>
-      <span id="topTitleText">Momo Talk</span>
+      <!-- ===== 这里换成了图片 ===== -->
+      <img src="momo.png" class="icon-peach-img" alt="logo">
+      <span id="topTitleText">MomoTalk</span>
     </div>
   </div>
   <div class="page-container">
