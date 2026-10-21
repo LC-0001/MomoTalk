@@ -1,4 +1,4 @@
-# MomoTalk
+**<font color="#FF88AA">Momo Talk</font>**
 
 一个《蔚蓝档案》风格的同人聊天界面，可以和自己喜欢的角色对话。
 
