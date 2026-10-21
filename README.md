@@ -1,5 +1,5 @@
-<h1 align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=800&size=48&pause=1000&color=FF88AA&center=true&vCenter=true&width=500&lines=Momo+Talk" alt="Momo Talk">
+<h1>
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=700&size=48&pause=1000&color=FF88AA&vCenter=true&width=500&lines=Momo+Talk" alt="Momo Talk">
 </h1>
 
 一个《蔚蓝档案》风格的同人聊天界面，可以和自己喜欢的角色对话。
