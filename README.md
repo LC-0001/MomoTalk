@@ -94,7 +94,7 @@ python3 -m http.server 8000
 
 ![License](https://img.shields.io/badge/许可-MIT-FF88AA)
 
-## 作者的话
+## 作者说明
 
 本项目是我在**纯移动端**环境完成的个人项目，开发条件和技术知识都比较有限。正如大家在 `about.html` 里看到的，代码主要由 **AI 辅助生成**，我负责需求设计、功能整合和尽可能的测试。
 
