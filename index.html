@@ -1548,11 +1548,13 @@ function getProviderConfig() {
   return { url: cfg.url, model: cfg.model };
 }
 function getApiKey() { return localStorage.getItem("momotalk_apikey") || ""; }
+function getProxyUrl() { return localStorage.getItem("momotalk_proxy_url") || ""; }
 function askForApiKey() {
   var currentProvider = getProvider();
   var currentKey = getApiKey();
   var customUrl = localStorage.getItem("momotalk_custom_url") || "";
   var customModel = localStorage.getItem("momotalk_custom_model") || "";
+  var proxyUrl = getProxyUrl();
 
   var body = '<div class="field"><label>选择 AI 服务</label><div class="provider-list" id="providerList">';
   for (var key in PROVIDERS) {
@@ -1583,6 +1585,13 @@ function askForApiKey() {
   body += '<div class="field"><label>API Key</label>' +
     '<input id="apiKeyInput" placeholder="粘贴你的 API Key" value="' + escapeHTML(currentKey) + '"></div>';
   body += '<div class="provider-hint">Key 只保存在你手机浏览器里，不会包含在导出文件中。</div>';
+
+  // 新增：自定义代理地址输入框
+  body += '<div class="field" style="margin-top:12px; border-top:1px dashed #ddd; padding-top:12px;">' +
+    '<label>自定义代理地址（可选）</label>' +
+    '<input id="proxyUrlInput" placeholder="https://your-worker.workers.dev" value="' + escapeHTML(proxyUrl) + '">' +
+    '<div class="provider-hint" style="margin-top:4px;">如果直连失败（如遇到 CORS 跨域错误），请填入你部署的 Cloudflare Worker 地址。留空则直连。</div>' +
+  '</div>';
 
   var footer = '<button class="btn-secondary" id="keyCancel">取消</button><button class="btn-primary" id="keySave">保存</button>';
 
@@ -1618,6 +1627,14 @@ function askForApiKey() {
 
     var key = document.getElementById("apiKeyInput").value.trim();
     if (!key) { showToast("请输入 API Key"); return; }
+
+    var proxyInput = document.getElementById("proxyUrlInput").value.trim();
+    // 简单的 URL 格式校验
+    if (proxyInput && !/^https?:\/\//i.test(proxyInput)) {
+      showToast("代理地址必须以 http:// 或 https:// 开头");
+      return;
+    }
+    localStorage.setItem("momotalk_proxy_url", proxyInput);
 
     if (selected === "custom") {
       var url = document.getElementById("apiUrlInput").value.trim();
@@ -1813,20 +1830,24 @@ function loadData() {
     localStorage.setItem(STORAGE_KEYS.defaultsAdded, "1");
     saveChars();
   }
-  var oldMarkers = ["每次回复必须用（）包裹", "多用语气词", "喜欢用“~”结尾", "常用“真是的”", "经常带省略号"];
-  var personaChanged = false;
-  DEFAULT_CHARS.forEach(function(dc) {
-    var ex = getChar(dc.id);
-    if (!ex || !ex.persona) return;
-    for (var i = 0; i < oldMarkers.length; i++) {
-      if (ex.persona.indexOf(oldMarkers[i]) >= 0) {
-        ex.persona = dc.persona;
-        personaChanged = true;
-        break;
+  // 修复 Bug: 用版本号控制只覆盖一次，避免用户自定义的人设被死循环重置
+  if (!localStorage.getItem("momotalk_persona_v2_migrated")) {
+    var oldMarkers = ["每次回复必须用（）包裹", "多用语气词", "喜欢用“~”结尾", "常用“真是的”", "经常带省略号"];
+    var personaChanged = false;
+    DEFAULT_CHARS.forEach(function(dc) {
+      var ex = getChar(dc.id);
+      if (!ex || !ex.persona) return;
+      for (var i = 0; i < oldMarkers.length; i++) {
+        if (ex.persona.indexOf(oldMarkers[i]) >= 0) {
+          ex.persona = dc.persona;
+          personaChanged = true;
+          break;
+        }
       }
-    }
-  });
-  if (personaChanged) saveChars();
+    });
+    if (personaChanged) saveChars();
+    localStorage.setItem("momotalk_persona_v2_migrated", "1");
+  }
 
   /* 顺序硬约束：迁移必须先于预载 */
   migrateMsgsToSplit();
@@ -1922,14 +1943,28 @@ async function callAIAPI(apiKey, messages) {
   }
   var opts = {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+    headers: { 
+      "Content-Type": "application/json", 
+      "Authorization": "Bearer " + apiKey,
+      "HTTP-Referer": "https://momotalk.app",
+      "X-Title": "MomoTalk"
+    },
     body: JSON.stringify({ model: cfg.model, messages: messages, max_tokens: 300, temperature: 0.8 })
   };
   /* 请求超时保护：60 秒无响应自动中断，避免会话被永久锁死 */
   function fetchWithTimeout() {
     var controller = new AbortController();
     var timer = setTimeout(function() { controller.abort(); }, 60000);
-    return fetch(cfg.url, Object.assign({}, opts, { signal: controller.signal }))
+    
+    // 核心修改：优先使用用户配置的代理地址
+    var proxyUrl = getProxyUrl();
+    var finalUrl = cfg.url;
+    if (proxyUrl) {
+        proxyUrl = proxyUrl.replace(/\/+$/, ''); // 移除末尾的斜杠，防拼出双斜杠
+        finalUrl = proxyUrl + "/?url=" + encodeURIComponent(cfg.url);
+    }
+
+    return fetch(finalUrl, Object.assign({}, opts, { signal: controller.signal }))
       .then(function(resp) { clearTimeout(timer); return resp; })
       .catch(function(err) {
         clearTimeout(timer);
@@ -2977,6 +3012,7 @@ function openCharEditor(id) {
       saveChars();
     } else {
       char.name = name;
+      char.initial = name.charAt(0); // 修复 Bug：同步更新首字母
       char.fullName = document.getElementById("edFullName").value.trim();
       char.school = document.getElementById("edSchool").value.trim();
       char.persona = document.getElementById("edPersona").value.trim();
@@ -3294,6 +3330,7 @@ function bindGlobalEvents() {
       localStorage.removeItem("momotalk_deleted");
       localStorage.removeItem(STORAGE_KEYS.defaultsAdded);
       localStorage.removeItem("momotalk_msgs_backup_ts");
+      localStorage.removeItem("momotalk_proxy_url");
       memoriesGeneration = {};
       summarizing = {};
       loadData();
