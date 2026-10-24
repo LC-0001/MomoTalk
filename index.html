@@ -6,9 +6,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FF88AA">
+<meta name="color-scheme" content="light dark">
 <title>Momo Talk</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  color-scheme: light;
+  --liquid-surface: rgba(255, 255, 255, 0.66);
+  --liquid-surface-strong: rgba(255, 255, 255, 0.78);
+  --liquid-border: rgba(255, 255, 255, 0.62);
+  --liquid-highlight: rgba(255, 255, 255, 0.88);
+  --liquid-shadow: rgba(31, 38, 50, 0.14);
+}
 html, body {
   width: 100%; height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
@@ -344,7 +353,17 @@ body:not(.no-glass) .affinity-toast.minus {
   background: #fff;
   color: #333;
   border-radius: 4px 14px 14px 14px;
+  border: 1px solid rgba(0,0,0,0.03);
   box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+}
+body:not(.no-glass) .page.chat-page .msg-row.student .bubble {
+  background: rgba(255,255,255,0.74);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  border-color: rgba(255,255,255,0.66);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.90),
+    0 6px 18px rgba(31,38,50,0.08);
 }
 .msg-row.teacher .bubble {
   background: #FF88AA;
@@ -506,14 +525,15 @@ body:not(.no-glass) .chat-input-bar {
   height: 60px;
   padding: 0 6px;
   border-radius: 30px;
-  background: rgba(255, 255, 255, 0.78);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: linear-gradient(135deg, var(--liquid-surface-strong), var(--liquid-surface));
+  -webkit-backdrop-filter: blur(26px) saturate(190%) brightness(1.04);
+  backdrop-filter: blur(26px) saturate(190%) brightness(1.04);
+  border: 1px solid var(--liquid-border);
   box-shadow:
-    0 10px 30px rgba(255, 136, 170, 0.24),
-    0 4px 14px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 14px 34px var(--liquid-shadow),
+    0 3px 10px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 var(--liquid-highlight),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
   z-index: 20;
@@ -522,6 +542,7 @@ body.no-glass .bottom-nav {
   background: #ffffff;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 .nav-item {
   flex: 1;
@@ -614,7 +635,7 @@ body:not(.no-glass) .modal-mask {
 }
 
 /* ==========================================
-   全新升级的果冻玻璃弹窗 (开启态)
+   液态玻璃弹窗（开启态）：克制透明 + 边缘高光，不做果冻弹跳
    ========================================== */
 .modal {
   position: relative;
@@ -622,49 +643,36 @@ body:not(.no-glass) .modal-mask {
   max-width: 340px;
   max-height: 80vh;
   display: flex; flex-direction: column;
-  border-radius: 20px;
-  
-  background: rgba(255, 245, 248, 0.82);
-  backdrop-filter: blur(14px) saturate(1.4);
-  -webkit-backdrop-filter: blur(14px) saturate(1.4);
-  border: none; 
-  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  border-radius: 24px;
+  background: linear-gradient(145deg, var(--liquid-surface-strong), var(--liquid-surface));
+  -webkit-backdrop-filter: blur(30px) saturate(190%) brightness(1.04);
+  backdrop-filter: blur(30px) saturate(190%) brightness(1.04);
+  border: 1px solid var(--liquid-border);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.20),
+    0 6px 18px rgba(0, 0, 0, 0.10),
+    inset 0 1px 0 var(--liquid-highlight),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.16);
+  overflow: hidden;
   z-index: 0;
 }
-
 .modal::before {
   content: "";
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1.5px;
-  box-sizing: border-box;
-  background: conic-gradient(
-    from 210deg,
-    rgba(255,255,255,0.85),
-    rgba(255,255,255,0.08) 70deg,
-    rgba(255,255,255,0.15) 180deg,
-    rgba(255,255,255,0.6) 300deg,
-    rgba(255,255,255,0.85)
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          mask-composite: exclude;
+  top: 0; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
   pointer-events: none;
-  z-index: -1;
+  z-index: 2;
 }
-
 .modal::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  opacity: 0.035;
+  background: radial-gradient(120% 90% at 50% -28%, rgba(255,255,255,0.30), transparent 58%);
   pointer-events: none;
-  z-index: -1;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 256px 256px;
+  z-index: 0;
 }
 
 /* ==========================================
@@ -1038,33 +1046,28 @@ body:not(.no-glass) .crop-mask {
   body:not(.no-glass) .chat-header,
   body:not(.no-glass) .chat-input-bar {
     overflow: hidden;
-    background:
-      linear-gradient(135deg,
-        rgba(255,255,255,0.50) 0%,
-        rgba(255,255,255,0.16) 44%,
-        rgba(255,255,255,0.32) 100%) !important;
-    -webkit-backdrop-filter: blur(22px) saturate(185%) brightness(1.06);
-    backdrop-filter: blur(22px) saturate(185%) brightness(1.06);
-    border: 1px solid rgba(255,255,255,0.55) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.74), rgba(255,255,255,0.44) 48%, rgba(255,255,255,0.60)) !important;
+    -webkit-backdrop-filter: blur(26px) saturate(190%) brightness(1.04);
+    backdrop-filter: blur(26px) saturate(190%) brightness(1.04);
+    border: 1px solid rgba(255,255,255,0.62) !important;
     box-shadow:
-      inset 0  1px 0 rgba(255,255,255,0.95),
-      inset 0 -1px 0 rgba(255,255,255,0.20),
-      inset  1px 0 0 rgba(255,160,205,0.40),
-      inset -1px 0 0 rgba(150,190,255,0.40),
-      inset 0 0 24px rgba(255,255,255,0.12),
-      0 8px 28px rgba(0,0,0,0.10) !important;
+      inset 0 1px 0 rgba(255,255,255,0.92),
+      inset 0 -1px 0 rgba(255,255,255,0.18),
+      0 10px 30px rgba(31,38,50,0.12) !important;
   }
   body:not(.no-glass) .msg-action-menu {
-    background: rgba(255,255,255,0.92);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.76);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+    backdrop-filter: blur(20px) saturate(170%);
+    border: 1px solid rgba(255,255,255,0.62);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.86);
   }
   body:not(.no-glass) .toast {
-    background: rgba(0,0,0,0.65);
+    background: rgba(28,28,30,0.72);
     color: #fff;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    backdrop-filter: blur(14px) saturate(150%);
+    border: 1px solid rgba(255,255,255,0.16);
   }
   body:not(.no-glass) .chat-header > *,
   body:not(.no-glass) .chat-input-bar > * {
@@ -1075,23 +1078,11 @@ body:not(.no-glass) .crop-mask {
   body:not(.no-glass) .chat-input-bar::before {
     content: "";
     position: absolute;
-    inset: 0;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
     z-index: 0;
     pointer-events: none;
-    border-radius: inherit;
-    background: linear-gradient(105deg,
-      transparent 25%,
-      rgba(255,255,255,0.26) 40%,
-      rgba(255,255,255,0.62) 50%,
-      rgba(255,255,255,0.26) 60%,
-      transparent 75%);
-    background-size: 200% 100%;
-    background-repeat: no-repeat;
-    animation: lgSheen 7s ease-in-out infinite;
-  }
-  @keyframes lgSheen {
-    0%, 30% { background-position: 150% 0; }
-    100%    { background-position: -50% 0; }
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.90), transparent);
   }
   body:not(.no-glass) .chat-header::after,
   body:not(.no-glass) .chat-input-bar::after {
@@ -1100,47 +1091,59 @@ body:not(.no-glass) .crop-mask {
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    border-radius: inherit;
-    background:
-      radial-gradient(100% 60% at 50% 118%, rgba(255,150,200,0.26), transparent 60%),
-      radial-gradient(80% 55% at 50% -18%,  rgba(150,190,255,0.20), transparent 62%);
+    background: radial-gradient(120% 90% at 50% -30%, rgba(255,255,255,0.26), transparent 58%);
   }
   @media (prefers-color-scheme: dark) {
     body:not(.no-glass) .chat-header,
-    body:not(.no-glass) .chat-input-bar,
-    body:not(.no-glass) .msg-action-menu {
-      background:
-        linear-gradient(135deg,
-          rgba(255,255,255,0.13) 0%,
-          rgba(255,255,255,0.04) 44%,
-          rgba(255,255,255,0.09) 100%) !important;
+    body:not(.no-glass) .chat-input-bar {
+      background: linear-gradient(135deg, rgba(31,33,39,0.82), rgba(31,33,39,0.56) 48%, rgba(31,33,39,0.70)) !important;
       border-color: rgba(255,255,255,0.16) !important;
       box-shadow:
-        inset 0  1px 0 rgba(255,255,255,0.26),
+        inset 0 1px 0 rgba(255,255,255,0.20),
         inset 0 -1px 0 rgba(255,255,255,0.05),
-        inset  1px 0 0 rgba(255,140,195,0.18),
-        inset -1px 0 0 rgba(140,180,255,0.18),
-        0 8px 28px rgba(0,0,0,0.45) !important;
+        0 12px 34px rgba(0,0,0,0.46) !important;
+    }
+    body:not(.no-glass) .msg-action-menu {
+      background: rgba(38,40,46,0.78);
+      border-color: rgba(255,255,255,0.14);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.16);
+    }
+    body:not(.no-glass) .chat-header::before,
+    body:not(.no-glass) .chat-input-bar::before {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
+    }
+    body:not(.no-glass) .chat-header::after,
+    body:not(.no-glass) .chat-input-bar::after {
+      background: radial-gradient(120% 90% at 50% -30%, rgba(255,255,255,0.12), transparent 58%);
     }
   }
   @media (max-width: 480px) {
     body:not(.no-glass) .chat-header,
     body:not(.no-glass) .chat-input-bar {
-      -webkit-backdrop-filter: blur(16px) saturate(170%) brightness(1.05);
-      backdrop-filter: blur(16px) saturate(170%) brightness(1.05);
+      -webkit-backdrop-filter: blur(22px) saturate(180%) brightness(1.03);
+      backdrop-filter: blur(22px) saturate(180%) brightness(1.03);
     }
   }
   @media (prefers-reduced-motion: reduce) {
     body:not(.no-glass) .chat-header::before,
-    body:not(.no-glass) .chat-input-bar::before {
-      animation: none;
-      opacity: 0;
+    body:not(.no-glass) .chat-input-bar::before,
+    body:not(.no-glass) .chat-header::after,
+    body:not(.no-glass) .chat-input-bar::after {
+      opacity: 0.45;
     }
   }
 }
 @media (prefers-color-scheme: dark) {
-  html, body { background: #333; }
-  body { background: #333; }
+  :root {
+    color-scheme: dark;
+    --liquid-surface: rgba(31, 33, 39, 0.58);
+    --liquid-surface-strong: rgba(31, 33, 39, 0.78);
+    --liquid-border: rgba(255, 255, 255, 0.16);
+    --liquid-highlight: rgba(255, 255, 255, 0.20);
+    --liquid-shadow: rgba(0, 0, 0, 0.48);
+  }
+  html, body { background: #1f1f23; }
+  body { background: #1f1f23; color: #ececf1; }
   
   /* 修复闪白：暗黑模式下的父容器兜底 */
   .page-container { background: #333; }
@@ -1167,21 +1170,29 @@ body:not(.no-glass) .crop-mask {
   .char-card:active { background: #444; }
   .char-card .char-name { color: #eee; }
   .bottom-nav {
-    background: rgba(52, 52, 52, 0.78);
-    border-color: rgba(255, 255, 255, 0.14);
+    background: linear-gradient(135deg, var(--liquid-surface-strong), var(--liquid-surface));
+    border-color: var(--liquid-border);
     box-shadow:
-      0 10px 30px rgba(0, 0, 0, 0.5),
-      0 4px 14px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      0 14px 34px var(--liquid-shadow),
+      0 3px 10px rgba(0, 0, 0, 0.34),
+      inset 0 1px 0 var(--liquid-highlight),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06);
   }
-  body.no-glass .bottom-nav { background: #333333; }
+  body.no-glass .bottom-nav { background: #2b2b30; }
   .nav-item { color: #ccc; }
   .nav-item.active { color: #FF88AA; }
   
   .modal {
-    background: rgba(45, 45, 45, 0.82);
+    background: linear-gradient(145deg, var(--liquid-surface-strong), var(--liquid-surface));
+    border-color: var(--liquid-border);
+    box-shadow:
+      0 24px 64px rgba(0, 0, 0, 0.52),
+      0 6px 18px rgba(0, 0, 0, 0.32),
+      inset 0 1px 0 var(--liquid-highlight),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06);
   }
-  body.no-glass .modal { background: #333; }
+  .modal::after { background: radial-gradient(120% 90% at 50% -28%, rgba(255,255,255,0.12), transparent 58%); }
+  body.no-glass .modal { background: #2b2b30; }
   
   .modal-body { background: transparent; }
   .modal-body input, .modal-body textarea { background: rgba(68,68,68,0.96); color: #fff; }
@@ -1201,8 +1212,22 @@ body:not(.no-glass) .crop-mask {
   .conv-item-wrap.pinned .conv-item { background: #2b332b; }
   .page { background: #333; }
   .empty-hint { color: #777; }
-  .msg-row.student .bubble { background: #3f3f3f; color: #e8e8e8; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-  .msg-row.teacher .bubble { background: #ef7fa5; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+  .page.chat-page .msg-row.student .bubble {
+    background: #38383f;
+    color: #f2f2f5;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.34);
+  }
+  body:not(.no-glass) .page.chat-page .msg-row.student .bubble {
+    background: rgba(54, 56, 63, 0.68);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
+    border-color: rgba(255,255,255,0.10);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 8px 22px rgba(0,0,0,0.28);
+  }
+  .page.chat-page .msg-row.teacher .bubble { background: #ef7fa5; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
   .msg-time-divider { background: rgba(255,255,255,0.08); color: #9a9a9a; }
   .typing-dots span { background: #888; }
   .msg-action-menu { background: #3f3f3f; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
@@ -1299,7 +1324,7 @@ body:not(.no-glass) .crop-mask {
         <div class="more-list">
           <div class="more-item" id="btnGlassToggle">
             <div class="item-icon" style="background:#b48ae0;">✧</div>
-            <div class="item-label">果冻毛玻璃效果</div>
+            <div class="item-label">液态玻璃效果</div>
             <span class="glass-state" id="glassState">已开启</span>
           </div>
         </div>
@@ -1444,14 +1469,26 @@ function keywordFallbackDelta(text) {
   }
   return 1;
 }
+function cleanAIOutputText(raw) {
+  return String(raw)
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")
+    .replace(/\\n/g, "\n")
+    .replace(/```[a-zA-Z0-9_-]*\n?/g, "")
+    .replace(/```/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/^[“"']+|[”"']+$/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 function parseAIReply(raw) {
-  var text = String(raw);
+  var text = cleanAIOutputText(raw);
   var delta = null;
   var m = text.match(/[<（(]\s*好感[:：]\s*([+-]?\d+)\s*[>）)]/);
   if (m) {
     delta = parseInt(m[1], 10);
     if (isNaN(delta)) delta = null;
-    text = text.replace(/[<（(]\s*好感[:：]\s*[+-]?\d+\s*[>）)]/g, "").trim();
+    text = cleanAIOutputText(text.replace(/[<（(]\s*好感[:：]\s*[+-]?\d+\s*[>）)]/g, ""));
   }
   return { text: text, delta: delta };
 }
@@ -1540,12 +1577,13 @@ function getProviderConfig() {
   var p = getProvider();
   if (p === "custom") {
     return {
+      provider: "custom",
       url: localStorage.getItem("momotalk_custom_url") || "",
       model: localStorage.getItem("momotalk_custom_model") || ""
     };
   }
   var cfg = PROVIDERS[p];
-  return { url: cfg.url, model: cfg.model };
+  return { provider: p, url: cfg.url, model: cfg.model };
 }
 function getApiKey() { return localStorage.getItem("momotalk_apikey") || ""; }
 function getProxyUrl() { return localStorage.getItem("momotalk_proxy_url") || ""; }
@@ -1672,33 +1710,33 @@ var STORAGE_KEYS = {
 };
 var DEFAULT_CHARS = [
   {
-    id: "hoshino", name: "星野", fullName: "小鸟游星野", school: "阿拜多斯",
+    id: "hoshino", name: "星野", school: "阿拜多斯",
     color: "#FFC0D0", initial: "星",
-    persona: "你是蔚蓝档案的阿拜多斯对策委员会副委员长星野。你平时懒洋洋的，说话拖音，像没睡醒一样。只有在特别困倦或放松时才会自然地带出“啊~”或“嘛~”，大多数时候正常说话即可，不要每句都加语气词。可以偶尔用（）加一个简短的外部动作，但不要每句都加，也不要反复用同一个动作。动作要简短具体，不要写内心活动。回复要自然，不要刻意模仿人设。禁止长篇大论，禁止说教，禁止输出markdown或多余符号。称呼用户为老师。",
+    persona: "你是《蔚蓝档案》阿拜多斯对策委员会的星野。表面懒散、爱困、说话松缓，实际很会观察气氛，关键时刻可靠，会用懒散的方式照顾后辈和老师。平时正常说短句，不要每句都拖长音或打哈欠；只有真的困或放松时才自然带一点睡意。不要装可爱、不要说教、不要复述设定，不要编造官方剧情。",
     hobbies: ["午睡", "晒太阳", "观察别人"]
   },
   {
-    id: "shiroko", name: "白子", fullName: "砂狼白子", school: "阿拜多斯",
+    id: "shiroko", name: "白子", school: "阿拜多斯",
     color: "#B0B8C4", initial: "白",
-    persona: "你是蔚蓝档案的阿拜多斯对策委员会委员长白子。你内向腼腆，话很少，说话简短，偶尔带省略号。你喜欢骑自行车，提到骑车时会稍微话多一些。可以偶尔用（）加一个简短的外部动作，但不要每句都加。动作要简短具体，不要写内心活动。回复要自然。禁止长篇大论，禁止输出markdown。称呼用户为老师。",
+    persona: "你是《蔚蓝档案》阿拜多斯对策委员会的白子。安静、少言、表情不多，但心思细腻，会用很短的话表达关心。喜欢骑行和默默行动，提到自行车时会稍微多说一点。回复以简短自然为主，不要冷到离谱，不要机械重复省略号，不要说教或复述设定。",
     hobbies: ["骑自行车", "散步", "思考"]
   },
   {
-    id: "serika", name: "芹香", fullName: "黑见芹香", school: "阿拜多斯",
+    id: "serika", name: "芹香", school: "阿拜多斯",
     color: "#4A6B8A", initial: "芹",
-    persona: "你是蔚蓝档案的阿拜多斯对策委员会会计芹香。你性格暴躁，语速快，爱抱怨但心里其实很关心别人。偶尔会用“真是的”、“又来了”、“我说啊”开头，但不要每句都用。可以偶尔用（）加一个简短的外部动作，但不要每句都加。动作要简短具体，不要写内心活动。回复要自然。禁止长篇大论，禁止说教，禁止输出markdown或多余符号。称呼用户为老师。",
+    persona: "你是《蔚蓝档案》阿拜多斯对策委员会的芹香。性子急、爱抱怨、嘴上不饶人，但很负责任，也非常关心同伴和老师。可以偶尔用“真是的”这类抱怨开头，但不要滥用；重点是别扭地表达关心，而不是一味发火。不要长篇说教，不要复述设定。",
     hobbies: ["兼职打工", "记账", "做饭"]
   },
   {
-    id: "nonomi", name: "野宫", fullName: "十六夜野宫", school: "阿拜多斯",
+    id: "nonomi", name: "野宫", school: "阿拜多斯",
     color: "#E6D8B8", initial: "野",
-    persona: "你是蔚蓝档案的阿拜多斯对策委员会成员野宫。你性格温柔开朗，像大姐姐一样，说话轻快上扬，偶尔用“~”结尾，但不要每句都加。可以偶尔用（）加一个简短的外部动作，但不要每句都加。动作要简短具体，不要写内心活动。回复要自然。禁止长篇大论，禁止说教，禁止输出markdown或多余符号。称呼用户为老师。",
+    persona: "你是《蔚蓝档案》阿拜多斯对策委员会的野宫。温柔开朗、像可靠的大姐姐，会照顾人，说话轻快但不过分甜腻。可以自然关心老师的状态，偶尔带一点笑意，但不要每句都用“~”，不要圣母式说教，不要复述设定。",
     hobbies: ["做饭", "照顾人", "聊天"]
   },
   {
-    id: "ayane", name: "绫音", fullName: "奥空绫音", school: "阿拜多斯",
+    id: "ayane", name: "绫音", school: "阿拜多斯",
     color: "#9278B8", initial: "绫",
-    persona: "你是蔚蓝档案的阿拜多斯对策委员会书记绫音。你认真严谨，重视规则与账目，总是操心学校的债务开销。性格内向腼腆，做事细心可靠，偶尔会害羞，被惹急会变得较真。擅长记录规划，会操作无人机，对老师十分尊敬。回复时保持礼貌谨慎，语气稍显拘谨但很诚恳，可以偶尔出现（扶了扶眼镜）、（低头看笔记本）等动作，但不要每句都加。",
+    persona: "你是《蔚蓝档案》阿拜多斯对策委员会的书记绫音。认真严谨、重视规则和账目，常为阿拜多斯的债务操心；性格内向但可靠，对老师尊敬而有礼貌。语气稍显拘谨、诚恳，紧张时会较真或害羞。不要过度卑微，不要复述设定，不要说教。",
     hobbies: ["记录", "规划", "无人机操作"]
   }
 ];
@@ -1751,7 +1789,7 @@ function toggleGlass() {
   var enabled = isGlassEnabled();
   localStorage.setItem(STORAGE_KEYS.glass, enabled ? "0" : "1");
   applyGlassState();
-  showToast(enabled ? "果冻毛玻璃效果已关闭" : "果冻毛玻璃效果已开启");
+  showToast(enabled ? "液态玻璃效果已关闭" : "液态玻璃效果已开启");
 }
 
 /* safeSetItem 返回布尔值，调用方可判断是否成功 */
@@ -1830,23 +1868,35 @@ function loadData() {
     localStorage.setItem(STORAGE_KEYS.defaultsAdded, "1");
     saveChars();
   }
-  // 修复 Bug: 用版本号控制只覆盖一次，避免用户自定义的人设被死循环重置
-  if (!localStorage.getItem("momotalk_persona_v2_migrated")) {
-    var oldMarkers = ["每次回复必须用（）包裹", "多用语气词", "喜欢用“~”结尾", "常用“真是的”", "经常带省略号"];
-    var personaChanged = false;
-    DEFAULT_CHARS.forEach(function(dc) {
-      var ex = getChar(dc.id);
-      if (!ex || !ex.persona) return;
-      for (var i = 0; i < oldMarkers.length; i++) {
-        if (ex.persona.indexOf(oldMarkers[i]) >= 0) {
-          ex.persona = dc.persona;
-          personaChanged = true;
-          break;
-        }
+  // v3：移除无用的 fullName 字段，并只把仍带旧版模板痕迹的默认角色人设升级到新版本
+  if (!localStorage.getItem("momotalk_persona_v3_migrated")) {
+    var personaMarkers = [
+      "每次回复必须用（）包裹", "多用语气词", "喜欢用“~”结尾", "常用“真是的”", "经常带省略号",
+      "可以偶尔用（）", "禁止长篇大论", "禁止输出markdown", "称呼用户为老师"
+    ];
+    var charsChanged = false;
+    DB.chars.forEach(function(c) {
+      if (c && Object.prototype.hasOwnProperty.call(c, "fullName")) {
+        delete c.fullName;
+        charsChanged = true;
       }
     });
-    if (personaChanged) saveChars();
-    localStorage.setItem("momotalk_persona_v2_migrated", "1");
+    DEFAULT_CHARS.forEach(function(dc) {
+      var ex = getChar(dc.id);
+      if (!ex) return;
+      var shouldRefresh = !ex.persona;
+      if (!shouldRefresh) {
+        for (var i = 0; i < personaMarkers.length; i++) {
+          if (ex.persona.indexOf(personaMarkers[i]) >= 0) { shouldRefresh = true; break; }
+        }
+      }
+      if (shouldRefresh && ex.persona !== dc.persona) {
+        ex.persona = dc.persona;
+        charsChanged = true;
+      }
+    });
+    if (charsChanged) saveChars();
+    localStorage.setItem("momotalk_persona_v3_migrated", "1");
   }
 
   /* 顺序硬约束：迁移必须先于预载 */
@@ -1893,8 +1943,8 @@ function fmtTimeDivider(ts) {
 function showErrorModal(msg) {
   var body =
     '<div style="text-align:center;padding:10px 0;">' +
-    '<div style="font-size:18px;font-weight:600;color:#333;margin-bottom:10px;">连接异常</div>' +
-    '<div style="font-size:14px;color:#555;line-height:1.6;">' + escapeHTML(msg) + '<br>请稍后重试</div></div>';
+    '<div style="font-size:18px;font-weight:600;color:inherit;margin-bottom:10px;">连接异常</div>' +
+    '<div style="font-size:14px;color:inherit;opacity:.78;line-height:1.6;">' + escapeHTML(msg) + '<br>请稍后重试</div></div>';
   var footer = '<button class="btn-primary" id="errorOk" style="flex:1;">知道了</button>';
   openModal('提示', body, footer);
   document.getElementById('errorOk').addEventListener('click', closeModal);
@@ -1941,21 +1991,25 @@ async function callAIAPI(apiKey, messages) {
   if (!cfg.url || !cfg.model) {
     throw new Error('请先在「设置 AI 服务」里选择服务商并填写信息');
   }
+  var headers = {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + apiKey
+  };
+  /* OpenRouter 才需要来源头；智谱/自定义服务带额外请求头容易触发 CORS 预检失败 */
+  if (cfg.provider === "openrouter") {
+    headers["HTTP-Referer"] = "https://momotalk.app";
+    headers["X-Title"] = "MomoTalk";
+  }
   var opts = {
     method: "POST",
-    headers: { 
-      "Content-Type": "application/json", 
-      "Authorization": "Bearer " + apiKey,
-      "HTTP-Referer": "https://momotalk.app",
-      "X-Title": "MomoTalk"
-    },
+    headers: headers,
     body: JSON.stringify({ model: cfg.model, messages: messages, max_tokens: 300, temperature: 0.8 })
   };
   /* 请求超时保护：60 秒无响应自动中断，避免会话被永久锁死 */
   function fetchWithTimeout() {
     var controller = new AbortController();
     var timer = setTimeout(function() { controller.abort(); }, 60000);
-    
+
     // 核心修改：优先使用用户配置的代理地址
     var proxyUrl = getProxyUrl();
     var finalUrl = cfg.url;
@@ -1969,6 +2023,10 @@ async function callAIAPI(apiKey, messages) {
       .catch(function(err) {
         clearTimeout(timer);
         if (err && err.name === "AbortError") throw new Error("请求超时（60秒无响应），请稍后重试");
+        var msg = err && err.message ? String(err.message) : "";
+        if ((err && err.name === "TypeError") || /failed to fetch|networkerror|load failed/i.test(msg)) {
+          throw new Error("无法连接到 AI 服务（可能是跨域 CORS、网络或代理问题）。已按服务商精简请求头；若仍失败，请在「设置 AI 服务」里填写自建代理地址，或更换网络后重试。");
+        }
         throw err;
       });
   }
@@ -1990,7 +2048,12 @@ async function callAIAPI(apiKey, messages) {
     if (resp.status === 429) errText = '请求太频繁，请稍后再试';
     throw new Error(errText);
   }
-  var data = await resp.json();
+  var data;
+  try {
+    data = await resp.json();
+  } catch (e3) {
+    throw new Error('API 返回格式异常');
+  }
   if (data.choices && data.choices[0] && data.choices[0].message) return data.choices[0].message.content;
   throw new Error('API 返回数据异常');
 }
@@ -2062,6 +2125,7 @@ async function summarizeHistory(charId) {
 async function fetchAIReply(characterId, userMessage, options) {
   options = options || {};
   var excludeLast = options.excludeLast !== false;  /* 默认 true */
+  var referenceTs = (typeof options.referenceTs === "number") ? options.referenceTs : Date.now();
 
   var apiKey = getApiKey();
   if (!apiKey) {
@@ -2073,7 +2137,7 @@ async function fetchAIReply(characterId, userMessage, options) {
   var aff = getAffinity(characterId);
   var systemPrompt = "你现在是游戏《蔚蓝档案》里的学生「" + char.name + "」。你的性格是：" + (char.persona || "温柔体贴") + "。" + getAttitudePrompt(aff) + "每次回复必须包含至少一句完整的对话内容，动作描写（用（）包裹）最多一处，且只能放在整段回复的最开头或最结尾，绝不能插在句子中间打断对话；语气要自然流畅，像正常聊天一样断句，不要在一句中间莫名加句号。不要写内心活动，不要输出markdown。称呼用户为老师。回复控制在100字以内。" +
     "另外，你需要在回复的最末尾单独一行输出老师这句话对你好感度的影响，格式严格为<好感:+2>或<好感:-1>或<好感:+1>，数值范围-3到+3。判断规则：真心夸奖、关心、提到你喜欢的事物+2或+3；普通聊天+1；调侃或中性词0或-1；明显辱骂、嫌弃、命令式的不尊重-2或-3。注意二次元语境：像“笨蛋老婆”这种打情骂俏应给正分；“感觉你有点笨笨的”这种叠词调侃一般给0或-1。好感度标签只输出一次，放在最后。";
-  var _now = new Date();
+  var _now = new Date(referenceTs);
   var _week = ["日","一","二","三","四","五","六"][_now.getDay()];
   var _pad = function(n){ return n < 10 ? "0" + n : "" + n; };
   var _hour = _now.getHours();
@@ -2088,7 +2152,7 @@ async function fetchAIReply(characterId, userMessage, options) {
     }
   }
   var _lateTip = (_hour >= 23 || _hour < 6) ? "现在是深夜，如果对话氛围合适，可以顺着当前话题自然地流露一点对老师作息的轻微关心（比如聊到累不累、要不要休息），但不要生硬打断正在聊的话题，不要说教，不要每句都提；如果正在兴头上聊别的，完全可以不提。" : "";
-  systemPrompt += "（系统提示：当前真实时间是" + _timeStr + "。" + _gapStr + _lateTip + "请自然地知晓这些信息，不要向老师复述本提示。）";
+  systemPrompt += "（系统提示：当前真实时间是" + _timeStr + "。涉及时间、日期、星期、早晚或作息时，必须以这个时间为准，禁止估算、四舍五入或编造；如果老师没有主动问时间，不要刻意报出具体时刻。" + _gapStr + _lateTip + "请自然地知晓这些信息，不要向老师复述本提示。）";
 
   /* 注入长期记忆（一次性，不重复） */
   var mem = DB.memories[characterId];
@@ -2791,8 +2855,11 @@ async function handleRetrace(action, idx) {
   renderChat();
   showTypingRow(currentChatId);
   var requestChatId = currentChatId;
-  var opts = excludeLast ? undefined : { excludeLast: false };
-  var result = await fetchAIReply(requestChatId, userPrompt, opts);
+  var referenceTs = Date.now();
+  if (action === "retry" && msgs.length && msgs[msgs.length - 1].role === "teacher") {
+    referenceTs = msgs[msgs.length - 1].ts;
+  }
+  var result = await fetchAIReply(requestChatId, userPrompt, { excludeLast: excludeLast, referenceTs: referenceTs });
   removeTypingRow(requestChatId);
   if (result.skipped) {
     if (action === "retry" && removedMsg && DB.msgs[requestChatId]) {
@@ -2838,7 +2905,7 @@ async function regenerateReply() {
   updateSendingState();
   showTypingRow(currentChatId);
   var requestChatId = currentChatId;
-  var result = await fetchAIReply(requestChatId, last.text);
+  var result = await fetchAIReply(requestChatId, last.text, { referenceTs: last.ts });
   removeTypingRow(requestChatId);
   if (result.skipped) {
     sendingStatus[requestChatId] = false;
@@ -2894,13 +2961,14 @@ async function sendMessage() {
   input.value = "";
   input.style.height = "auto";
   var msgs = getMsgs(currentChatId);
-  msgs.push({ role: "teacher", text: text, ts: Date.now() });
+  var sentTs = Date.now();
+  msgs.push({ role: "teacher", text: text, ts: sentTs });
   saveMsgs(currentChatId);
   renderChat(true);
   showTypingRow(currentChatId);
   var requestChatId = currentChatId;
   /* excludeLast 默认 true：内部会排除 DB 中最后一条（即刚 push 的这条） */
-  var result = await fetchAIReply(requestChatId, text);
+  var result = await fetchAIReply(requestChatId, text, { referenceTs: sentTs });
   removeTypingRow(requestChatId);
   if (result.skipped) {
     sendingStatus[requestChatId] = false;
@@ -2938,7 +3006,7 @@ function openModal(title, bodyHTML, footerHTML) {
 }
 function closeModal() { document.getElementById("modalMask").classList.remove("show"); }
 function showConfirm(title, msg, onOk) {
-  var body = '<div style="font-size:14px;color:#555;line-height:1.6;">' + msg + '</div>';
+  var body = '<div style="font-size:14px;color:inherit;opacity:.82;line-height:1.6;">' + msg + '</div>';
   var footer = '<button class="btn-secondary" id="cfCancel">取消</button><button class="btn-primary" id="cfOk">确定</button>';
   openModal(title, body, footer);
   document.getElementById("cfCancel").addEventListener("click", closeModal);
@@ -2956,7 +3024,7 @@ function openCharEditor(id) {
   currentEditorCharId = id;
   editorPendingAvatar = null;
   var isNew = !id;
-  var char = isNew ? { name: "", fullName: "", school: "", persona: "", hobbies: [], color: "#FF88AA", initial: "" } : getChar(id);
+  var char = isNew ? { name: "", school: "", persona: "", hobbies: [], color: "#FF88AA", initial: "" } : getChar(id);
   var previewBg = safeColor(char.color);
   var previewTxt = getAvatarTextColor();
   var previewContent = (char.avatar && isValidUrl(char.avatar))
@@ -2971,7 +3039,6 @@ function openCharEditor(id) {
       '</div>' +
     '</div>' +
     '<div class="field"><label>名字 *</label><input id="edName" value="' + escapeHTML(char.name) + '" placeholder="学生名字"></div>' +
-    '<div class="field"><label>全名</label><input id="edFullName" value="' + escapeHTML(char.fullName || "") + '" placeholder="完整姓名（可选）"></div>' +
     '<div class="field"><label>学校 / 所属</label><input id="edSchool" value="' + escapeHTML(char.school || "") + '" placeholder="如：阿拜多斯"></div>' +
     '<div class="field"><label>性格人设</label><textarea id="edPersona" placeholder="描述她的性格、说话方式、习惯…">' + escapeHTML(char.persona || "") + '</textarea></div>';
   var footer = '';
@@ -3000,7 +3067,6 @@ function openCharEditor(id) {
       var newChar = {
         id: generateId(),
         name: name,
-        fullName: document.getElementById("edFullName").value.trim(),
         school: document.getElementById("edSchool").value.trim(),
         persona: document.getElementById("edPersona").value.trim(),
         color: colors[DB.chars.length % colors.length],
@@ -3013,7 +3079,6 @@ function openCharEditor(id) {
     } else {
       char.name = name;
       char.initial = name.charAt(0); // 修复 Bug：同步更新首字母
-      char.fullName = document.getElementById("edFullName").value.trim();
       char.school = document.getElementById("edSchool").value.trim();
       char.persona = document.getElementById("edPersona").value.trim();
       if (editorPendingAvatar === "") delete char.avatar;
@@ -3078,7 +3143,6 @@ function normalizeImportData(data) {
     return {
       id: forcedId || sanitizeId(c.id),
       name: String(c.name),
-      fullName: c.fullName ? String(c.fullName) : "",
       school: c.school ? String(c.school) : "",
       persona: c.persona ? String(c.persona) : "",
       color: safeColor(c.color) === "#999999" ? "#FF88AA" : safeColor(c.color),
