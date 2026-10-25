@@ -1236,6 +1236,58 @@ body:not(.no-glass) .crop-mask {
 @media (prefers-reduced-motion: reduce) {
   .lg-nav-pill { transition: opacity .2s; }
 }
+
+/* ==========================================
+   Beta 标注（果冻毛玻璃效果后面的小标签）
+   ========================================== */
+.exp-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  color: #b48ae0;
+  background: #f4eefc;
+  border: 1px solid #e0d0f5;
+  border-radius: 8px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+@media (prefers-color-scheme: dark) {
+  .exp-badge {
+    color: #c9a8f0;
+    background: #3a2f4a;
+    border-color: #55416e;
+  }
+}
+
+/* ==========================================
+   Plan B 标注（完美复刻 Beta 的样式逻辑）
+   ========================================== */
+.plan-b-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  color: #5aa9e6;
+  background: #eef6fc;
+  border: 1px solid #bce1f5;
+  border-radius: 8px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+@media (prefers-color-scheme: dark) {
+  .plan-b-badge {
+    color: #8ab4f8;
+    background: #2a3a4a;
+    border-color: #3a5a7a;
+  }
+}
 </style>
 </head>
 <body>
@@ -1299,7 +1351,7 @@ body:not(.no-glass) .crop-mask {
         <div class="more-list">
           <div class="more-item" id="btnGlassToggle">
             <div class="item-icon" style="background:#b48ae0;">✧</div>
-            <div class="item-label">果冻毛玻璃效果</div>
+            <div class="item-label">果冻毛玻璃效果<span class="exp-badge">Beta</span></div>
             <span class="glass-state" id="glassState">已开启</span>
           </div>
         </div>
@@ -1336,6 +1388,18 @@ body:not(.no-glass) .crop-mask {
             <div class="item-arrow"></div>
           </div>
         </div>
+        
+        <!-- 独立一栏：Momo Chat 入口，加大上下间距彻底隔开 -->
+        <div style="margin-top: 16px; margin-bottom: 16px;">
+          <div class="more-list" style="box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            <a href="aichat.html" class="more-item" style="text-decoration:none;color:inherit; border-bottom: none;">
+              <img src="momo.png" class="item-icon" style="object-fit: cover;">
+              <div class="item-label">Momo Chat<span class="plan-b-badge">Plan B</span></div>
+              <div class="item-arrow"></div>
+            </a>
+          </div>
+        </div>
+
         <div class="section-title">关于</div>
 <div class="more-list">
   <a href="about.html" class="more-item" style="text-decoration:none;color:inherit;">
