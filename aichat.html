@@ -189,7 +189,7 @@
   .modal-header { padding: 20px 24px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
   .modal-close { font-size: 24px; color: #fff; line-height: 1; opacity: .8; }
   .modal-close:hover { opacity: 1; }
-  .modal-body { padding: 24px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  .modal-body { padding: 24px; flex: 1; display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; }
   .input-group label { display: block; font-size: 13px; color: var(--text-soft); margin-bottom: 8px; }
   .input-wrapper { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; transition: border-color .2s, box-shadow .2s; }
   .input-wrapper:focus-within { border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-glow); }
@@ -380,6 +380,30 @@
       <button class="modal-close" id="closeApiKeyModal">×</button>
     </div>
     <div class="modal-body">
+      
+      <!-- 新增：手动选择服务商 -->
+      <div class="input-group">
+        <label>服务商</label>
+        <div class="custom-select-wrapper" id="providerSelectWrapper">
+          <div class="custom-select-trigger" tabindex="0">
+            <span class="custom-select-value">自动识别 (推荐)</span>
+            <svg class="custom-select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div class="custom-select-options">
+            <div class="custom-select-option active" data-value="auto">自动识别 (推荐)</div>
+            <div class="custom-select-option" data-value="zhipu">智谱 GLM</div>
+            <div class="custom-select-option" data-value="openai">OpenAI</div>
+            <div class="custom-select-option" data-value="anthropic">Anthropic</div>
+            <div class="custom-select-option" data-value="deepseek">DeepSeek</div>
+            <div class="custom-select-option" data-value="openrouter">OpenRouter</div>
+            <div class="custom-select-option" data-value="groq">Groq</div>
+            <div class="custom-select-option" data-value="gemini">Google Gemini</div>
+            <div class="custom-select-option" data-value="aionlabs">Aion Labs</div>
+            <div class="custom-select-option" data-value="custom">自定义地址 (中转)</div>
+          </div>
+        </div>
+      </div>
+
       <div class="input-group">
         <label>服务商 API Key</label>
         <div class="input-wrapper">
@@ -387,13 +411,22 @@
           <button class="toggle-pwd-btn" id="togglePwdBtn">显示</button>
         </div>
       </div>
-      <div class="input-group">
-        <label>代理地址（可选，解决 CORS）</label>
+
+      <!-- 自定义地址与模型 (仅选自定义时显示) -->
+      <div class="input-group" id="customUrlGroup" style="display:none;">
+        <label>API 接口地址</label>
         <div class="input-wrapper">
-          <input type="text" id="proxyUrlInput" placeholder="https://your-worker.workers.dev" autocomplete="off" spellcheck="false">
+          <input type="text" id="customApiUrlInput" placeholder="https://api.example.com/v1" autocomplete="off" spellcheck="false">
         </div>
       </div>
-      <div class="modal-hint">只需填入 API Key，系统将自动识别服务商并匹配模型。若直连失败（CORS 跨域），请填入你部署的 Cloudflare Worker 代理地址。留空则直连。</div>
+      <div class="input-group" id="customModelGroup" style="display:none;">
+        <label>模型名称</label>
+        <div class="input-wrapper">
+          <input type="text" id="customModelInput" placeholder="例如 gpt-4o-mini" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="modal-hint">Key 仅保存在本地浏览器。如果自动识别失败，请手动选择服务商。</div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" id="cancelApiKey">取消</button>
@@ -535,8 +568,14 @@
   var cancelApiKey = $('cancelApiKey');
   var saveApiKey = $('saveApiKey');
   var apiKeyInput = $('apiKeyInput');
-  var proxyUrlInput = $('proxyUrlInput');
   var togglePwdBtn = $('togglePwdBtn');
+
+  // 自定义地址相关
+  var providerSelectWrapper = $('providerSelectWrapper');
+  var customUrlGroup = $('customUrlGroup');
+  var customModelGroup = $('customModelGroup');
+  var customApiUrlInput = $('customApiUrlInput');
+  var customModelInput = $('customModelInput');
 
   var openRoleCardSettings = $('openRoleCardSettings');
   var roleCardModalMask = $('roleCardModalMask');
@@ -632,6 +671,17 @@
   var currentRoleSchemeId = null;
   var currentInteractionSchemeId = null;
 
+  // 监听服务商下拉框变化，动态显示/隐藏自定义输入框
+  var providerDropdown = setupCustomDropdown('providerSelectWrapper', function(val) {
+    if (val === 'custom') {
+      customUrlGroup.style.display = 'block';
+      customModelGroup.style.display = 'block';
+    } else {
+      customUrlGroup.style.display = 'none';
+      customModelGroup.style.display = 'none';
+    }
+  });
+
   var roleDropdown = setupCustomDropdown('roleSelectWrapper', function (val) {
     currentRoleSchemeId = val;
     loadRoleCardToForm(currentRoleSchemeId);
@@ -642,22 +692,32 @@
   });
   var contextDropdown = setupCustomDropdown('contextWindowWrapper', null);
 
-  /* ================= 服务商识别（具体规则前置，OpenAI 兜底） ================= */
+  /* ================= 服务商配置 ================= */
+  var MANUAL_PROVIDERS = {
+    zhipu: { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
+    openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+    anthropic: { baseUrl: 'https://api.anthropic.com/v1', model: 'claude-3-5-haiku-20241022' },
+    deepseek: { baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' },
+    openrouter: { baseUrl: 'https://openrouter.ai/api/v1', model: 'google/gemini-2.0-flash-exp:free' },
+    groq: { baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
+    gemini: { baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-1.5-flash' },
+    aionlabs: { baseUrl: 'https://api.aionlabs.ai/v1', model: 'aion-labs/aion-2.0' }
+  };
+
   var PROVIDER_REGISTRY = [
-    { id: 'anthropic', name: 'Anthropic', prefix: /^sk-ant-/, baseUrl: 'https://api.anthropic.com/v1', model: 'claude-3-5-haiku-20241022' },
-    { id: 'openrouter', name: 'OpenRouter', prefix: /^sk-or-v1-/, baseUrl: 'https://openrouter.ai/api/v1', model: 'google/gemini-2.0-flash-exp:free' },
-    { id: 'deepseek', name: 'DeepSeek', prefix: /^sk-[a-f0-9]{32}$/, baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' },
-    { id: 'groq', name: 'Groq', prefix: /^gsk_/, baseUrl: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
-    { id: 'gemini', name: 'Google Gemini', prefix: /^AIza/, baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-1.5-flash' },
-    { id: 'aionlabs', name: 'Aion Labs', prefix: /(^aion|aion-labs)/i, baseUrl: 'https://api.aionlabs.ai/v1', model: 'aion-labs/aion-2.0' },
-    { id: 'openai', name: 'OpenAI', prefix: /^sk-(proj-|svcacct-)?[a-zA-Z0-9]{20,}/, baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' }
+    { id: 'anthropic', prefix: /^sk-ant-/ },
+    { id: 'openrouter', prefix: /^sk-or-v1-/ },
+    { id: 'deepseek', prefix: /^sk-[a-f0-9]{32}$/ },
+    { id: 'groq', prefix: /^gsk_/ },
+    { id: 'gemini', prefix: /^AIza/ },
+    { id: 'openai', prefix: /^sk-(proj-|svcacct-)?[a-zA-Z0-9]{20,}/ }
   ];
 
   function detectProvider(key) {
     for (var i = 0; i < PROVIDER_REGISTRY.length; i++) {
-      if (PROVIDER_REGISTRY[i].prefix.test(key)) return PROVIDER_REGISTRY[i];
+      if (PROVIDER_REGISTRY[i].prefix.test(key)) return PROVIDER_REGISTRY[i].id;
     }
-    return { id: 'custom', name: '自定义/通用网关', baseUrl: '', model: '' };
+    return null;
   }
 
   /* ================= 角色卡 ================= */
@@ -813,11 +873,36 @@
   openApiKeyModal.addEventListener('click', function () {
     var saved = localStorage.getItem(API_CONFIG_STORAGE);
     if (saved) {
-      try { apiKeyInput.value = JSON.parse(saved).key || ''; } catch (e) {}
+      try {
+        var conf = JSON.parse(saved);
+        apiKeyInput.value = conf.key || '';
+        customApiUrlInput.value = conf.baseUrl || '';
+        customModelInput.value = conf.model || '';
+        
+        // 回显下拉框
+        var savedProvider = conf.providerId || 'auto';
+        providerDropdown.setOptions({
+          auto: {name: '自动识别 (推荐)'}, zhipu: {name: '智谱 GLM'}, openai: {name: 'OpenAI'}, 
+          anthropic: {name: 'Anthropic'}, deepseek: {name: 'DeepSeek'}, openrouter: {name: 'OpenRouter'},
+          groq: {name: 'Groq'}, gemini: {name: 'Google Gemini'}, aionlabs: {name: 'Aion Labs'}, custom: {name: '自定义地址 (中转)'}
+        }, savedProvider);
+        
+        if (savedProvider === 'custom') {
+          customUrlGroup.style.display = 'block';
+          customModelGroup.style.display = 'block';
+        } else {
+          customUrlGroup.style.display = 'none';
+          customModelGroup.style.display = 'none';
+        }
+      } catch (e) {}
     } else {
       apiKeyInput.value = '';
+      customApiUrlInput.value = '';
+      customModelInput.value = '';
+      providerDropdown.setOptions({ auto: {name: '自动识别 (推荐)'} }, 'auto');
+      customUrlGroup.style.display = 'none';
+      customModelGroup.style.display = 'none';
     }
-    proxyUrlInput.value = localStorage.getItem(PROXY_STORAGE) || '';
     apiKeyInput.classList.add('masked-text');
     togglePwdBtn.textContent = '显示';
     apiKeyModalMask.classList.add('show');
@@ -841,20 +926,46 @@
   saveApiKey.addEventListener('click', function () {
     var key = apiKeyInput.value.trim();
     if (!key) { showToast('请输入 API Key'); return; }
-    var proxy = proxyUrlInput.value.trim();
-    if (proxy && !/^https?:\/\//i.test(proxy)) { showToast('代理地址必须以 http:// 或 https:// 开头'); return; }
-    var provider = detectProvider(key);
-    var config = { key: key, providerId: provider.id, providerName: provider.name, baseUrl: provider.baseUrl, model: provider.model };
+    
+    var providerOpt = document.querySelector('#providerSelectWrapper .custom-select-option.active');
+    var selectedProvider = providerOpt ? providerOpt.dataset.value : 'auto';
+
+    var finalProviderId, finalBaseUrl, finalModel;
+
+    if (selectedProvider === 'auto') {
+      var detected = detectProvider(key);
+      if (detected) {
+        finalProviderId = detected;
+        finalBaseUrl = MANUAL_PROVIDERS[detected].baseUrl;
+        finalModel = MANUAL_PROVIDERS[detected].model;
+      } else {
+        showToast('自动识别失败，请手动选择服务商');
+        return;
+      }
+    } else if (selectedProvider === 'custom') {
+      var curl = customApiUrlInput.value.trim();
+      var cmodel = customModelInput.value.trim();
+      if (!curl || !cmodel) { showToast('请填写自定义的 API 地址和模型名称'); return; }
+      if (!/^https?:\/\//i.test(curl)) { showToast('API 地址必须以 http:// 或 https:// 开头'); return; }
+      finalProviderId = 'custom';
+      finalBaseUrl = curl;
+      finalModel = cmodel;
+    } else {
+      finalProviderId = selectedProvider;
+      finalBaseUrl = MANUAL_PROVIDERS[selectedProvider].baseUrl;
+      finalModel = MANUAL_PROVIDERS[selectedProvider].model;
+    }
+
+    var config = { key: key, providerId: finalProviderId, baseUrl: finalBaseUrl, model: finalModel };
+    
     try {
       localStorage.setItem(API_CONFIG_STORAGE, JSON.stringify(config));
-      localStorage.setItem(PROXY_STORAGE, proxy);
     } catch (e) { showToast('保存失败，存储空间可能已满'); return; }
+    
     closeKeyModal();
-    if (provider.id === 'custom') {
-      showToast('未匹配到服务商，请检查 Key 格式或填写代理');
-    } else {
-      showToast('已识别为 ' + provider.name + ' 并保存');
-    }
+    
+    var displayName = selectedProvider === 'auto' ? ('自动识别为 ' + finalProviderId) : (providerOpt ? providerOpt.textContent : finalProviderId);
+    showToast('已保存：' + displayName);
   });
 
   /* ================= Markdown ================= */
@@ -1042,7 +1153,7 @@
       };
     } else {
       var baseUrl = config.baseUrl;
-      if (!baseUrl) throw new Error('未识别服务商，无法自动匹配 API 地址，请更换 Key 或填写代理');
+      if (!baseUrl) throw new Error('未配置 API 地址，请到设置中重新选择服务商');
       realUrl = baseUrl.replace(/\/+$/, '');
       if (!/\/chat\/completions$/.test(realUrl)) realUrl += '/chat/completions';
       headers = {
@@ -1061,14 +1172,11 @@
       };
     }
 
-    var proxyUrl = (localStorage.getItem(PROXY_STORAGE) || '').replace(/\/+$/, '');
-    var fetchUrl = proxyUrl ? (proxyUrl + '/?url=' + encodeURIComponent(realUrl)) : realUrl;
-
     var controller = new AbortController();
     var timer = setTimeout(function () { controller.abort(); }, 60000);
     var response;
     try {
-      response = await fetch(fetchUrl, {
+      response = await fetch(realUrl, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(finalBody),
@@ -1076,8 +1184,8 @@
       });
     } catch (err) {
       clearTimeout(timer);
-      if (err && err.name === 'AbortError') throw new Error('请求超时（60 秒），请检查网络或代理');
-      throw new Error('网络请求失败：' + (err.message || '可能是 CORS 跨域，试试配置代理地址'));
+      if (err && err.name === 'AbortError') throw new Error('请求超时（60 秒），请检查网络');
+      throw new Error('网络请求失败：' + (err.message || '可能是 CORS 跨域，或者是中转地址不对'));
     }
     clearTimeout(timer);
 
