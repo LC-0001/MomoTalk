@@ -16,11 +16,18 @@ document.addEventListener("DOMContentLoaded", function () {
   var VERSION_STABLE = window.MOMOTALK_VERSION.stable;
   var VERSION_BETA = window.MOMOTALK_VERSION.beta;
 
+  // 页面内 .version-stable / .version-beta 元素替换
   document.querySelectorAll(".version-stable").forEach(function (el) {
     el.textContent = VERSION_STABLE;
   });
-
   document.querySelectorAll(".version-beta").forEach(function (el) {
     el.textContent = VERSION_BETA;
   });
+
+  // title 占位符替换：支持 {{STABLE}} / {{BETA}}
+  if (document.title) {
+    document.title = document.title
+      .replace(/\{\{\s*STABLE\s*\}\}/gi, VERSION_STABLE)
+      .replace(/\{\{\s*BETA\s*\}\}/gi, VERSION_BETA);
+  }
 });
