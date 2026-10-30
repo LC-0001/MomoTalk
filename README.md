@@ -5,6 +5,8 @@
 一个《蔚蓝档案》风格的同人聊天界面，可以和自己喜欢的角色对话。
 
 > 在线体验：[https://LC-0001.github.io/MomoTalk/](https://LC-0001.github.io/MomoTalk/)
+> 
+> Beta 测试版：[https://LC-0001.github.io/MomoTalk/beta.html](https://LC-0001.github.io/MomoTalk/beta.html) 
 
 <!-- 建议在此处放一张聊天界面截图（或毛玻璃效果的 GIF），README 观感会好很多 -->
 
