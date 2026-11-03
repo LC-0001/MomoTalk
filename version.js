@@ -1,7 +1,7 @@
 // version.js - 版本控制中心
 window.MOMOTALK_VERSION = {
-  stable: "v2.1.3",       // 稳定版版本号
-  beta: "v2.2.0 Beta"     // 测试版版本号
+  stable: "v2.2.0",       // 稳定版版本号
+  beta: "v2.2.0"          // 测试版已转正，统一版本号
 };
 
 // 供导出等脚本读取纯数字版本号
