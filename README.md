@@ -79,8 +79,9 @@ python3 -m http.server 8000
 如版权方认为本项目构成侵权，请联系仓库作者，将会及时处理、下架相关内容。
 
 - 联系方式：
-  - 项目相关（Bug 反馈、侵权申诉等）：唯一正式联系方式为 GitHub Issue。
-  - 个人日常交流：欢迎通过下方「作者说明」中的 B站 / 抖音 联系我。
+  - 项目相关（Bug 反馈等）：欢迎直接在 QQ 群内交流，或在 GitHub Issue 留言。
+  - 侵权申诉等正式事项：请通过 GitHub Issue 联系，以便留档处理。
+  - 个人日常交流：欢迎加入下方「作者说明」中的 QQ 群。
 
 ## 更新日志
 
@@ -113,9 +114,8 @@ python3 -m http.server 8000
 因此，我非常希望使用这个项目的朋友能帮我**测试并反馈问题**，也欢迎随时**分享你的使用经验、改进灵感或角色设定思路**。
 
 - **遇到 Bug 或功能建议**：欢迎直接在 [GitHub Issues](https://github.com/LC-0001/MomoTalk/issues) 提交。
-- **日常交流或灵感分享**：欢迎来我的 B站 或 抖音 找我！
-  - B站：[HのSENSEI](https://space.bilibili.com/3546761429780884)
-  - 抖音：[𝓗（H）](https://v.douyin.com/GEy9fjKRarA/)
+- **日常交流或灵感分享**：欢迎加入交流群
+  - QQ 群：[MomoTalk 交流群](https://qm.qq.com/q/pJGFUezi1M)
 
 如果懂一点代码，也欢迎 Fork 后自行修改并提交 PR。希望这个项目能在大家的帮助下一起变得更好！
 
