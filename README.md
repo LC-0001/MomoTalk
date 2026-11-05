@@ -2,7 +2,7 @@
   <img src="https://readme-typing-svg.demolab.com?font=Noto+Sans+SC&weight=700&size=40&pause=1000&duration=3000&color=FF88AA&vCenter=true&width=500&height=50&lines=Momo+Talk;%E5%92%8C%E8%87%AA%E5%B7%B1%E5%96%9C%E6%AC%A2%E7%9A%84%E8%A7%92%E8%89%B2%E5%AF%B9%E8%AF%9D;%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E8%A7%92%E8%89%B2" alt="Momo Talk">
 </h1>
 
-> [!WARNING]
+> [!IMPORTANT]
 > ### AI 对话服务状态说明
 > 近期 AI 回复出现异常，初步判断为上游服务波动导致的偶发问题，相关排查与回归验证正在进行中。
 >
