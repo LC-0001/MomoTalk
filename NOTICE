@@ -1,8 +1,18 @@
 Momo Talk
 Copyright 2026 LC-0001
 
-本仓库采用 MIT 许可证，该许可仅适用于代码及文档部分。
-以下内容不受 MIT 许可证约束，版权归 Nexon / Yostar 所有：
-  - 《蔚蓝档案》角色的头像、名称、人物设定文本等 IP 素材
+本仓库采用 MIT 许可证，该许可仅适用于本项目作者编写的代码及文档部分。
+以下内容不受 MIT 许可证约束，版权归各自的所有者所有：
 
-上述素材仅供非商业同人学习交流，禁止商用、售卖或引流盈利。
+1. 《蔚蓝档案》IP 素材
+版权归 Nexon / Yostar 所有：
+  - 《蔚蓝档案》角色的名称、人物设定文本等衍生内容。
+  - momo.png 图片素材。
+上述素材仅供非商业同人学习交流，禁止商用、售卖或引流盈利。本项目与 Nexon / Yostar 官方无任何关联。
+
+2. 第三方开源组件
+本项目使用了以下第三方开源库：
+  - LiquidGlassJS (@surdeddd/liquidglass)
+    GitHub：https://github.com/Surdeddd/liquidglassjs
+    作者：Surdeddd
+    许可证：MIT License
