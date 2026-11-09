@@ -5,39 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>关于 - Momo Talk</title>
 <style>
-  body { margin:0; font-family:sans-serif; background:#f5f5f7; color:#333; }
+  /* 颜色与主页 index.html 保持一致，改主色只需改这里 */
+  :root {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --text: #333333;
+    --text-secondary: #999999;
+    --accent: #FF88AA;
+    --shadow: rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --surface: #2c2c2e;
+      --text: #e5e5e7;
+      --text-secondary: #98989d;
+      --shadow: rgba(0,0,0,.3);
+    }
+  }
+
+  body { margin:0; font-family:sans-serif; background:var(--bg); color:var(--text); }
   .wrap { max-width:600px; margin:0 auto; padding:24px 16px 40px; }
-  .back { font-size:20px; line-height:1; color:#FF88AA;
+  .back { font-size:20px; line-height:1; color:var(--accent);
           text-decoration:none; padding:4px 8px 4px 0; margin-right:10px;
           vertical-align:2px; }
-  h1 { font-size:22px; color:#FF88AA; margin:0 0 4px; }
-  h2 { font-size:16px; margin:0 0 8px; border-left:4px solid #FF88AA; padding-left:8px; }
+  h1 { font-size:22px; color:var(--accent); margin:0 0 4px; }
+  h2 { font-size:16px; margin:0 0 8px; border-left:4px solid var(--accent); padding-left:8px; }
   p, li { font-size:14px; line-height:1.8; }
-  .ver { color:#999; font-size:13px; margin:0 0 4px; }
-  .card { background:#fff; border-radius:12px; padding:16px; margin-top:16px;
-          box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .ver { color:var(--text-secondary); font-size:13px; margin:0 0 4px; }
+  .card { background:var(--surface); border-radius:12px; padding:16px; margin-top:16px;
+          box-shadow:0 1px 4px var(--shadow); }
   .card h2:first-child { margin-top:0; }
   .card ul { margin:0; padding-left:20px; }
-  .card a { color:#FF88AA; text-decoration:none; }
-
-  @media (prefers-color-scheme: dark) {
-    body  { background:#1c1c1e; color:#e5e5e7; }
-    .card { background:#2c2c2e; box-shadow:0 1px 4px rgba(0,0,0,.3); }
-    .ver  { color:#98989d; }
-  }
+  .card a { color:var(--accent); text-decoration:none; }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <h1><a class="back" href="index.html" aria-label="返回">‹</a>关于 Momo Talk</h1>
-  <!-- 这里的版本号会自动读取 version.js 的数据 -->
-  <p class="ver"><span class="version-beta"></span> · 部分代码与文档在 AI 辅助下完成</p>
+  <!-- 版本号由 version.js 自动填入；加载失败时显示"版本未知" -->
+  <p class="ver"><span class="version-beta">版本未知</span> · 部分代码与文档在 AI 辅助下完成</p>
 
   <div class="card">
     <h2>数据说明</h2>
     <ul>
-      <li>本应用不设服务器，所有数据（角色、聊天记录、好感度、API 密钥）仅保存在你设备的浏览器本地存储中。</li>
+      <li>本应用没有自建后端服务器，所有数据（角色、聊天记录、好感度、API 密钥）仅保存在你设备的浏览器本地存储中。</li>
       <li>API 密钥仅用于在本地直连你所选的 AI 服务商，开发者无法获取。</li>
       <li>发送消息时，对话内容会直接发送至你所配置的 AI 服务商，请自行查阅该服务商的隐私条款。</li>
     </ul>
@@ -49,14 +62,20 @@
       <li>本项目为个人非商业同人项目，与 Nexon、《蔚蓝档案》官方无任何关联。项目内角色、设定等 IP 内容版权归 Nexon 所有。</li>
       <li>本项目源代码采用 MIT 协议开源，该协议仅适用于代码本身，不代表授予任何《蔚蓝档案》IP 相关授权。严禁将项目内 IP 素材用于商业售卖、盈利用途。</li>
       <li>AI 生成内容仅供娱乐，不代表游戏官方设定。对话内容会发送至你选择的第三方 AI 服务商，开发者不对 AI 输出内容承担任何责任。</li>
-      <li>本项目仅供爱好者学习交流，请勿商业使用。如存在版权侵权问题，请联系仓库作者进行处理。</li>
-      <li>联系方式：如有问题请通过 GitHub Issue 联系，恕不提供邮箱等其他渠道。</li>
+      <li>本项目仅供爱好者学习交流，请勿商业使用。如存在版权侵权问题，请通过 GitHub Issue 联系仓库作者进行处理。</li>
+      <li>联系方式：
+        <ul>
+          <li>Bug 反馈与功能建议：请优先在 GitHub Issue 提交，方便留档和追踪。</li>
+          <li>日常交流、快速提问：欢迎加入 QQ 群 <a href="https://qm.qq.com/q/pJGFUezi1M" target="_blank" rel="noopener noreferrer">MomoTalk 交流群</a>。</li>
+          <li>侵权申诉等正式事项：请仅通过 GitHub Issue 联系，以便留档处理。</li>
+        </ul>
+      </li>
     </ul>
   </div>
 
   <div class="card">
     <h2>开源信息</h2>
-    <p>项目源码开源于 GitHub：<a href="https://github.com/LC-0001/MomoTalk" target="_blank">LC-0001/MomoTalk</a></p>
+    <p>项目源码开源于 GitHub：<a href="https://github.com/LC-0001/MomoTalk" target="_blank" rel="noopener noreferrer">LC-0001/MomoTalk</a></p>
     <p>代码使用 MIT License 开源。</p>
     <p>IP 素材的授权范围详见仓库根目录 NOTICE 文件。</p>
   </div>
