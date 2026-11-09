@@ -1,33 +1,21 @@
-// version.js - 版本控制中心
+// version.js - 版本号（以后发新版只需修改下面这一行）
 window.MOMOTALK_VERSION = {
-  stable: "v2.2.0",       // 稳定版版本号
-  beta: "v2.2.0"          // 测试版已转正，统一版本号
+  current: "v2.2.0"
 };
 
-// 供导出等脚本读取纯数字版本号
-window.getMomoTalkVersionNum = function (kind) {
-  var v = (kind === "beta")
-    ? window.MOMOTALK_VERSION.beta
-    : window.MOMOTALK_VERSION.stable;
-  return String(v).replace(/^v/i, "").replace(/\s*beta\s*$/i, "").trim();
+// 兼容旧字段名：index.html 等文件可能仍在引用，确认无用后可删除以下两行
+window.MOMOTALK_VERSION.stable = window.MOMOTALK_VERSION.current;
+window.MOMOTALK_VERSION.beta = window.MOMOTALK_VERSION.current;
+
+// 供导出等脚本读取纯数字版本号，例如 "2.2.0"
+window.getMomoTalkVersionNum = function () {
+  return String(window.MOMOTALK_VERSION.current).replace(/^v/i, "").trim();
 };
 
+// 把页面中带有版本占位类名的元素替换为当前版本号
 document.addEventListener("DOMContentLoaded", function () {
-  var VERSION_STABLE = window.MOMOTALK_VERSION.stable;
-  var VERSION_BETA = window.MOMOTALK_VERSION.beta;
-
-  // 页面内 .version-stable / .version-beta 元素替换
-  document.querySelectorAll(".version-stable").forEach(function (el) {
-    el.textContent = VERSION_STABLE;
+  var version = window.MOMOTALK_VERSION.current;
+  document.querySelectorAll(".version-stable, .version-beta").forEach(function (el) {
+    el.textContent = version;
   });
-  document.querySelectorAll(".version-beta").forEach(function (el) {
-    el.textContent = VERSION_BETA;
-  });
-
-  // title 占位符替换：支持 {{STABLE}} / {{BETA}}
-  if (document.title) {
-    document.title = document.title
-      .replace(/\{\{\s*STABLE\s*\}\}/gi, VERSION_STABLE)
-      .replace(/\{\{\s*BETA\s*\}\}/gi, VERSION_BETA);
-  }
 });
