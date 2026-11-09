@@ -1500,8 +1500,8 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
 .err-raw { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 8px; }
 .err-raw summary { font-size: 13px; color: var(--accent); cursor: pointer; list-style: none; padding: 6px 0; }
 .err-raw summary::-webkit-details-marker { display: none; }
-.err-raw summary::before { content: "▸ "; }
-.err-raw[open] summary::before { content: "▾ "; }
+.err-raw summary::before { content: "› "; font-size: 16px; font-weight: bold; margin-right: 4px; vertical-align: -1px;}
+.err-raw[open] summary::before { content: "⌄ "; font-size: 16px; font-weight: bold; margin-right: 4px; vertical-align: 1px;}
 .err-code { font-size: 12px; color: var(--text-secondary); margin: 4px 0; }
 .err-raw pre {
   margin: 0; padding: 8px 10px; max-height: 150px; overflow: auto;
@@ -2720,7 +2720,7 @@ function describeApiError(err) {
   } else if (code === "network" || /Failed to fetch|NetworkError|Load failed/i.test(msg)) {
     d.title = "连接失败";
     d.message = "没能连上服务商。";
-    d.solution = "先检查网络。网络正常的话，可能是该服务商不允许网页直接访问，可以在「高级设置」里填代理地址。";
+    d.solution = "先检查网络。如果你开着代理，可能是代理暂时连不上，去「高级设置」里关闭代理试试（DeepSeek、OpenRouter 通常直连即可）；如果是智谱、通义等国内模型，因跨域限制必须开启代理；国外模型请开启 VPN 或检查代理地址。";
     d.action = { label: "设置代理", fn: function() { askForApiKey({ expandAdvanced: true }); } };
     d.raw = msg;
   } else if (code === "format" || msg === "API 返回数据异常") {
