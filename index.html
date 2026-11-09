@@ -10,7 +10,7 @@
 <meta http-equiv="Content-Security-Policy" content="
 default-src 'self';
 script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com;
-connect-src 'self' https://api.anthropic.com https://openrouter.ai https://api.groq.com https://generativelanguage.googleapis.com https://open.bigmodel.cn https://api.aionlabs.ai https://api.deepseek.com https://api.openai.com;
+connect-src 'self' https:;
 img-src 'self' data: https:;
 style-src 'self' 'unsafe-inline';
 ">
@@ -40,6 +40,7 @@ style-src 'self' 'unsafe-inline';
   --border-strong: #e5e5e5;
 
   --glass-base: rgba(255, 255, 255, 0.65);
+  --glass-input-base: rgba(255, 255, 255, 0.80);   /* 输入栏玻璃：比其他玻璃更实一点，保证文字清晰 */
   --glass-bg-top: rgba(255,255,255,0.96);     /* 顶部/底部栏玻璃 */
   --glass-bg-bottom: rgba(255,255,255,0.78);
   --glass-border: rgba(255,255,255,0.55);     /* 玻璃边框（亮色需要更白才看得见） */
@@ -101,6 +102,7 @@ style-src 'self' 'unsafe-inline';
     --border-strong: #555555;
 
     --glass-base: rgba(30, 30, 30, 0.65);
+    --glass-input-base: rgba(30, 30, 30, 0.82);
     --glass-bg-top: rgba(43,43,43,0.96);
     --glass-bg-bottom: rgba(43,43,43,0.78);
     --glass-border: rgba(255,255,255,0.16);   /* 晚上玻璃边框要暗，不然白边很刺眼 */
@@ -157,7 +159,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 button:active { transform: scale(0.96); }
 input, textarea { font-family: inherit; outline: none; border: none; }
 
-/* ===== #8 键盘适配：Flex 高度由 --app-height 驱动（visualViewport 注入），旧环境 100vh/100dvh 兜底 ===== */
 #app {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -179,7 +180,7 @@ input, textarea { font-family: inherit; outline: none; border: none; }
   #page-chars .char-grid { max-width: 1000px; margin: 0 auto; grid-template-columns: repeat(4, 1fr); gap: 24px 16px; }
   #page-chars .char-card .avatar { width: 70px; height: 70px; font-size: 25px; }
   .chat-body { padding-left: max(10px, calc((100% - 920px) / 2)); padding-right: max(10px, calc((100% - 920px) / 2)); }
-  .chat-input-bar { padding-left: max(10px, calc((100% - 920px) / 2)); padding-right: max(10px, calc((100% - 920px) / 2)); }
+  .chat-input-bar { left: max(12px, calc((100% - 920px) / 2)); right: max(12px, calc((100% - 920px) / 2)); }
   #page-more > div { max-width: 820px; margin: 0 auto; }
 }
 @media (min-width: 800px) {
@@ -347,7 +348,6 @@ input, textarea { font-family: inherit; outline: none; border: none; }
 .char-card .char-name { font-size: 13px; color: var(--text); text-align: center; }
 .char-card .char-school { font-size: 10px; color: var(--text-muted); text-align: center; }
 
-/* ===== #8 键盘适配：聊天页改为纵向 Flex，header/input 在流内，body 占满剩余 ===== */
 .chat-header {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -398,8 +398,9 @@ body:not(.no-glass) .chat-header {
 }
 #affinityLevel.lv0 { color: #999; border-color: #ddd; background: #f5f5f5; }
 #affinityLevel.lv1 { color: #8a9bb0; border-color: #c5d0dd; background: #f0f4f8; }
-#affinityLevel.lv2 { color: #d68f3a; border-color: #ecc896; background: #faf3e8; }
-#affinityLevel.lv3 { color: #e8559a; border-color: #ffb3c8; background: #fff0f5; }
+#affinityLevel.lv2 { color: #6a9fd8; border-color: #b5cce8; background: #f0f6fc; }
+#affinityLevel.lv3 { color: #d68f3a; border-color: #ecc896; background: #faf3e8; }
+#affinityLevel.lv4 { color: #e8559a; border-color: #ffb3c8; background: #fff0f5; }
 .heart-icon {
   width: 14px;
   height: 14px;
@@ -450,7 +451,7 @@ body:not(.no-glass) .affinity-toast.minus {
   overflow-y: auto;
   padding: 10px;
   padding-top: calc(58px + env(safe-area-inset-top, 0px));
-  padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--input-bar-h, 48px) + 20px + var(--vvs, env(safe-area-inset-bottom, 0px)));
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -513,32 +514,33 @@ body:not(.no-glass) .affinity-toast.minus {
   30% { transform: translateY(-5px); opacity: 1; }
 }
 
-/* ===== #8 键盘适配：输入栏改为流内 flex-shrink:0 ===== */
 .chat-input-bar {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
+  left: 12px; right: 12px;
+  bottom: calc(8px + var(--vvs, env(safe-area-inset-bottom, 0px)));
   background: var(--surface);
-  border-top: none;
-  padding: 8px 10px calc(8px + var(--vvs, env(safe-area-inset-bottom, 0px)));
+  border-radius: 24px;
+  padding: 6px;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: flex-end;
   z-index: 6;
 }
 body:not(.no-glass) .chat-input-bar {
-  background: linear-gradient(to top, var(--glass-bg-top), var(--glass-bg-bottom));
+  background: var(--glass-input-base);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
   backdrop-filter: blur(14px) saturate(160%);
-  border-top: none;
+  border: none;
 }
 .chat-input-bar textarea {
   flex: 1;
+  min-width: 0;
   min-height: 36px;
   max-height: 100px;
-  background: var(--input-bg);
+  background: transparent;
   color: var(--input-text);
   border-radius: 18px;
-  padding: 9px 14px;
+  padding: 9px 6px 9px 14px;
   font-size: 16px;
   line-height: 1.4;
   resize: none;
@@ -546,6 +548,7 @@ body:not(.no-glass) .chat-input-bar {
   transition: opacity 0.2s;
   touch-action: none;
 }
+.chat-input-bar textarea::placeholder { color: var(--text-secondary); opacity: 0.85; }
 @keyframes blinkFix { 0% { opacity: 0.99; } 100% { opacity: 1; } }
 .chat-input-bar textarea:focus { animation: blinkFix 0.02s; }
 .chat-input-bar.sending textarea {
@@ -553,20 +556,31 @@ body:not(.no-glass) .chat-input-bar {
   pointer-events: none;
 }
 .send-btn {
+  position: relative;
   width: 36px; height: 36px;
   background: var(--accent);
+  color: var(--text-inverse);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  margin-right: 6px;  
+  margin-bottom: 3px; 
 }
 .send-btn:active { background: var(--accent-pressed); }
 .send-btn:disabled { background: var(--accent-border); }
-.icon-send {
-  width: 0; height: 0;
-  border-left: 11px solid var(--text-inverse);
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  margin-left: 2px;
+.send-btn .ic {
+  position: absolute;
+  top: 9px;     /* 理论值是 8px，多加 1px 往下压，专治“视觉偏上” */
+  left: 7px;    /* 理论值是 8px，向左拉 1px，抵消纸飞机向右倾斜的视觉错觉 */
+  width: 20px; 
+  height: 20px;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.send-btn .ic-stop { opacity: 0; transform: scale(0.6); top: 8px; left: 8px; }
+.send-btn.is-stop .ic-send { opacity: 0; transform: scale(0.6); }
+.send-btn.is-stop .ic-stop { opacity: 1; transform: scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .send-btn .ic { transition: none; }
 }
 .msg-action-menu {
   position: absolute;
@@ -738,7 +752,6 @@ body.no-glass .bottom-nav {
 #page-more > div {
   padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
 }
-/* #B3 已删除 .lg-nav-pill { display: none !important; } 及全部相关样式 */
 .modal-mask {
   position: absolute; inset: 0;
   background: var(--mask-bg);
@@ -875,7 +888,6 @@ body.no-glass .modal-body textarea {
 .btn-danger { background: var(--surface); color: var(--danger); border: 1px solid var(--danger); }
 .btn-danger:active { background: #fdecea; }
 
-/* ===== 简约 Select：触发器 + 下拉列表（替代原 radio 卡片） ===== */
 .provider-select {
   position: relative;
   width: 100%;
@@ -904,7 +916,7 @@ body.no-glass .modal-body textarea {
 .provider-trigger .trigger-arrow {
   width: 8px; height: 8px;
   border-right: 2px solid #bbb;
-  border-bottom: 2px solid #bbb; /* 改这里，变成向下箭头 */
+  border-bottom: 2px solid #bbb;
   transform: rotate(45deg);
   margin-left: 10px;
   flex-shrink: 0;
@@ -924,7 +936,7 @@ body.no-glass .modal-body textarea {
   box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   z-index: 20;
   display: none;
-  max-height: 260px;
+  max-height: 300px;
   overflow-y: auto;
 }
 .provider-select.open .provider-options { display: block; }
@@ -966,6 +978,38 @@ body.no-glass .modal-body textarea {
   line-height: 1.5;
   margin-top: 10px;
 }
+
+.provider-group-title {
+  position: sticky; top: 0; z-index: 1;
+  padding: 7px 14px 5px;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+}
+.provider-group-note {
+  padding: 4px 14px 6px;
+  font-size: 11px; line-height: 1.4;
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+  border-bottom: 1px solid var(--border);
+}
+.get-key-link {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 8px 0 8px 14px;
+  margin: -8px 0;
+}
+.get-key-link:active { opacity: 0.6; }
+.field-hint { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-top: 4px; word-break: break-all; }
+.link-btn {
+  font-size: 13px; color: var(--accent);
+  padding: 8px 0 8px 14px; margin: -8px 0;
+  background: none; text-decoration: underline; text-underline-offset: 2px;
+}
+.link-btn:disabled { opacity: 0.5; }
 
 .avatar-edit-row {
   display: flex;
@@ -1188,9 +1232,7 @@ body:not(.no-glass) .crop-mask {
   align-items: flex-start;
 }
 .msg-row.teacher .student-bubble-wrap { align-items: flex-end; }
-/* #B3 已删除 .lg-nav-pill { position:absolute; ... } 和 .lg-nav-pill.show { opacity:1; } */
 
-/* ===== #7 移除流光扫光：删除 lgSheen 与 ::before 闪光层，保留 ::after 静态高光 ===== */
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   body:not(.no-glass) .chat-header,
   body:not(.no-glass) .chat-input-bar {
@@ -1310,9 +1352,8 @@ body:not(.no-glass) .crop-mask {
   .provider-option-row[aria-selected="true"] { background: #4a3a40; color: var(--accent); }
   body:not(.no-glass) .affinity-toast.plus { background: rgba(255,230,239,0.85); }
   body:not(.no-glass) .affinity-toast.minus { background: rgba(70,70,70,0.85); color: #ccc; }
-  /* #B3 已删除深色模式下的 .lg-nav-pill { ... } */
+  #affinityLevel.lv4 { color: #ffb3c8; border-color: #8a3f5c; background: #4a2a38; }
 }
-/* #B3 已删除 @media (prefers-reduced-motion: reduce) { .lg-nav-pill { ... } } */
 .exp-badge {
   display: inline-block;
   font-size: 10px;
@@ -1336,14 +1377,28 @@ body:not(.no-glass) .crop-mask {
   }
 }
 
-/* ===== backdrop-filter 降级（来源：@supports 特性检测） ===== */
-.no-glass .chat-header,
-.no-glass .chat-input-bar {
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body:not(.no-glass) .chat-input-bar {
+    background-color: var(--glass-input-base) !important;
+    box-shadow:
+      0 8px 28px var(--glass-drop),
+      inset 0 0 0 1px var(--glass-border) !important;
+  }
+}
+
+.no-glass .chat-header {
   background: var(--surface) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: none !important;
   box-shadow: none !important;
+}
+.no-glass .chat-input-bar {
+  background: var(--surface) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
 }
 
 .no-glass .bottom-nav {
@@ -1357,19 +1412,55 @@ body:not(.no-glass) .crop-mask {
     inset 0 1px 0 var(--glass-highlight) !important;
 }
 
-/* ===== 模块四：滑动到底部按钮 ===== */
+.more-item.danger-item .item-label {
+  color: var(--text);
+}
+
+.glass-toggle {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  background: #d0d0d0;
+  border-radius: 13px;
+  flex-shrink: 0;
+  transition: background 0.25s ease;
+  cursor: pointer;
+}
+.glass-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: transform 0.25s ease;
+}
+.glass-toggle.on {
+  background: var(--accent);
+}
+.glass-toggle.on::after {
+  transform: translateX(18px);
+}
+@media (prefers-color-scheme: dark) {
+  .glass-toggle { background: #555; }
+  .glass-toggle.on { background: var(--accent); }
+}
+
 .scroll-bottom-btn {
-  position: absolute; right: 16px; bottom: calc(70px + var(--vvs, env(safe-area-inset-bottom, 0px)));
+  position: absolute; right: 16px; 
+  bottom: calc(var(--input-bar-h, 48px) + 20px + var(--vvs, env(safe-area-inset-bottom, 0px)));
   width: 40px; height: 40px; border-radius: 50%; background: var(--surface); color: var(--text-secondary);
   box-shadow: 0 2px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center;
   z-index: 5; opacity: 0; visibility: hidden; transform: translateY(10px);
-  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1); border: 1px solid var(--border); pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1), bottom 0.25s ease; border: 1px solid var(--border); pointer-events: none;
 }
 .scroll-bottom-btn.show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
 body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop-filter: blur(12px); border-color: var(--glass-border); }
 .scroll-bottom-btn:active { transform: scale(0.9) !important; background: var(--surface-muted); }
 
-/* ===== 模块四：无障碍动效护栏 ===== */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
@@ -1378,13 +1469,70 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
     scroll-behavior: auto !important;
   }
 }
+.hint-warn { color: #c92a62 !important; font-weight: 500; }
+@media (prefers-color-scheme: dark) {
+  .hint-warn { color: #ff8cb4 !important; }
+}
+.danger-title {
+  color: #e74c3c !important;
+}
+.more-item.danger-item {
+  border-left: 3px solid #e74c3c !important;
+}
+.more-item.danger-item .item-icon {
+  background: #e74c3c !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .danger-title {
+    color: #d64c7f !important;
+  }
+  .more-item.danger-item {
+    border-left: 3px solid #d64c7f !important;
+  }
+  .more-item.danger-item .item-icon {
+    background: #d64c7f !important;
+  }
+}
+.err-dialog { font-size: 14px; line-height: 1.6; }
+.err-msg { color: var(--text); }
+.err-solution { color: var(--text-secondary); margin-top: 10px; }
+.err-raw { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 8px; }
+.err-raw summary { font-size: 13px; color: var(--accent); cursor: pointer; list-style: none; padding: 6px 0; }
+.err-raw summary::-webkit-details-marker { display: none; }
+.err-raw summary::before { content: "▸ "; }
+.err-raw[open] summary::before { content: "▾ "; }
+.err-code { font-size: 12px; color: var(--text-secondary); margin: 4px 0; }
+.err-raw pre {
+  margin: 0; padding: 8px 10px; max-height: 150px; overflow: auto;
+  white-space: pre-wrap; word-break: break-all;
+  font-size: 12px; line-height: 1.5;
+  background: var(--surface-muted); color: var(--text-secondary);
+  border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  user-select: text; -webkit-user-select: text;
+}
+.err-copy { margin-top: 8px; padding: 6px 14px; font-size: 13px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); }
+/* ========================================
+   全局隐藏滚动条（保留正常滚动功能）
+======================================== */
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+* {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE / 旧版 Edge */
+}
 </style>
 </head>
 <body>
 <div id="app">
   <div class="top-bar" id="topBar">
     <div class="title" id="topTitle">
-      <img src="momo.png" class="icon-peach-img" alt="logo">
+      <img src="momo.png" class="icon-peach-img" alt="logo" onerror="this.style.display='none'">
       <span id="topTitleText">MomoTalk</span>
     </div>
   </div>
@@ -1394,7 +1542,7 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
         <div class="search-wrap">
           <input type="text" class="search-input" id="convSearchInput" placeholder="搜索会话">
         </div>
-        <button class="filter-reset-btn" id="convResetBtn">重置</button>
+        <button class="filter-reset-btn" id="convResetBtn">清除搜索</button>
       </div>
       <div class="conv-list" id="convList"></div>
     </div>
@@ -1403,13 +1551,13 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
         <div class="search-wrap">
           <input type="text" class="search-input" id="charSearchInput" placeholder="搜索学生">
         </div>
-        <button class="filter-reset-btn" id="charResetBtn">重置</button>
+        <button class="filter-reset-btn" id="charResetBtn">清除搜索</button>
       </div>
       <div class="char-grid" id="charGrid"></div>
     </div>
     <div class="page chat-page" id="page-chat">
       <div class="chat-header" id="chatHeader">
-        <button class="back-btn" id="chatBackBtn">←</button>
+        <button class="back-btn" id="chatBackBtn" aria-label="返回">←</button>
         <div class="avatar" id="chatAvatar"></div>
         <div class="chat-name" id="chatName"></div>
         <div class="affinity" id="chatAffinity">
@@ -1419,13 +1567,13 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
       </div>
       <div class="affinity-toast" id="affinityToast"></div>
       <div class="chat-body" id="chatBody"></div>
-      <!-- 模块四：滑动到底部按钮 -->
+      <!-- 滑动到底部按钮 -->
       <button class="scroll-bottom-btn" id="scrollBottomBtn" aria-label="回到底部">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15m6-6l-6 6-6-6"/></svg>
       </button>
       <div class="chat-input-bar" id="chatInputBar">
         <textarea id="msgInput" rows="1" placeholder="发送消息..."></textarea>
-        <button class="send-btn" id="sendBtn"><span class="icon-send"></span></button>
+        <button class="send-btn" id="sendBtn" aria-label="发送"><svg class="ic ic-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><svg class="ic ic-stop" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3"/></svg></button>
       </div>
     </div>
     <div class="page more-page" id="page-more">
@@ -1445,7 +1593,7 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
           <div class="more-item" id="btnGlassToggle">
             <div class="item-icon" style="background:#b48ae0;">✧</div>
             <div class="item-label">液态玻璃<span class="exp-badge">Beta</span></div>
-            <span class="glass-state" id="glassState">已开启</span>
+            <span class="glass-toggle on" id="glassState" role="switch" aria-checked="true" aria-label="液态玻璃开关"></span>
           </div>
         </div>
         <div class="section-title">数据管理</div>
@@ -1460,36 +1608,39 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
             <div class="item-label">导入 JSON 备份</div>
             <div class="item-arrow"></div>
           </div>
-          <div class="more-item" id="btnApiKey">
+          <div class="more-item" id="btnApiKey" aria-label="设置 AI 服务">
             <div class="item-icon" style="background:#f0a030;color:#fff;">K</div>
             <div class="item-label">设置 AI 服务</div>
             <div class="item-arrow"></div>
           </div>
-          <div class="more-item" id="btnDelApiKey">
-            <div class="item-icon" style="background:#e74c3c;color:#fff;">K</div>
-            <div class="item-label">删除已保存的 API Key</div>
+          <div class="more-item" id="btnDelApiKey" role="button" tabindex="0" aria-label="删除 API 密钥">
+            <div class="item-icon" style="background:#e74c3c;color:#fff;">×</div>
+            <div class="item-label">删除 API 密钥</div>
             <div class="item-arrow"></div>
           </div>
-          <div class="more-item" id="btnRestore">
+          <div class="more-item" id="btnRestore" aria-label="恢复已删会话">
             <div class="item-icon" style="background:#6ab0d6;">R</div>
             <div class="item-label">恢复已删会话</div>
             <div class="item-arrow"></div>
           </div>
-          <div class="more-item" id="btnClear">
-            <div class="item-icon" style="background:#999;">×</div>
+        </div>
+        <div class="section-title danger-title">危险操作</div>
+        <div class="more-list">
+          <div class="more-item danger-item" id="btnClear" aria-label="清空全部本地数据">
+            <div class="item-icon" style="background:#e74c3c;">×</div>
             <div class="item-label">清空全部本地数据</div>
             <div class="item-arrow"></div>
           </div>
         </div>
 
         <div class="section-title">关于</div>
-<div class="more-list">
-  <a href="about.html" class="more-item" style="text-decoration:none;color:inherit;">
-    <div class="item-icon" style="background:#999;">i</div>
-    <div class="item-label">Momo Talk <span class="version-beta"></span> (AI制作)</div>
-    <div class="item-arrow"></div>
-  </a>
-</div>
+        <div class="more-list">
+          <a href="about.html" class="more-item" style="text-decoration:none;color:inherit;">
+            <div class="item-icon" style="background:#999;">i</div>
+            <div class="item-label">Momo Talk <span class="version-beta"></span> (AI制作)</div>
+            <div class="item-arrow"></div>
+          </a>
+        </div>
         <div style="height:20px;"></div>
       </div>
     </div>
@@ -1511,7 +1662,7 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
     <div class="modal">
       <div class="modal-header">
         <span id="modalTitle">标题</span>
-        <button class="modal-close" id="modalClose">×</button>
+        <button class="modal-close" id="modalClose" aria-label="关闭">×</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
       <div class="modal-footer" id="modalFooter"></div>
@@ -1521,7 +1672,7 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
     <div class="crop-modal">
       <div class="modal-header">
         <span>裁剪头像</span>
-        <button class="modal-close" id="cropClose">×</button>
+        <button class="modal-close" id="cropClose" aria-label="关闭">×</button>
       </div>
       <div class="crop-view" id="cropView">
         <img id="cropImg" src="" alt="">
@@ -1547,10 +1698,11 @@ body:not(.no-glass) .scroll-bottom-btn { background: var(--glass-base); backdrop
 "use strict";
 var AFFINITY_MAX = 100;
 var AFFINITY_LEVELS = [
-  { min: 0,  max: 20,  name: "陌生", lv: 0 },
-  { min: 21, max: 50,  name: "熟识", lv: 1 },
-  { min: 51, max: 80,  name: "亲近", lv: 2 },
-  { min: 81, max: 100, name: "亲密", lv: 3 }
+  { min: 0,  max: 10,  name: "陌生", lv: 0 },
+  { min: 11, max: 25,  name: "初识", lv: 1 },
+  { min: 26, max: 50,  name: "熟识", lv: 2 },
+  { min: 51, max: 80,  name: "亲近", lv: 3 },
+  { min: 81, max: 100, name: "亲密", lv: 4 }
 ];
 function getAffinityLevel(v) {
   for (var i = AFFINITY_LEVELS.length - 1; i >= 0; i--) {
@@ -1560,9 +1712,10 @@ function getAffinityLevel(v) {
 }
 function getAttitudePrompt(v) {
   var lv = getAffinityLevel(v);
-  if (lv.lv === 0) return "当前你对老师还很陌生（好感度" + v + "/100），态度要冷淡、警惕、敷衍，回复更简短，不太愿意搭理老师。";
-  if (lv.lv === 1) return "当前你和老师是普通朋友（好感度" + v + "/100），态度正常友好，礼貌但保持一点距离。";
-  if (lv.lv === 2) return "当前你和老师关系亲近（好感度" + v + "/100），态度热情熟络，会主动关心老师，偶尔撒娇或开玩笑。";
+  if (lv.lv === 0) return "当前你对老师还很陌生（好感度" + v + "/100），态度礼貌但保持距离，话不多但愿意回应，不会主动搭话，也不会表现得太热络。";
+  if (lv.lv === 1) return "当前你和老师刚认识不久（好感度" + v + "/100），态度友好礼貌，偶尔会主动关心但还有点拘谨，不会撒娇。";
+  if (lv.lv === 2) return "当前你和老师已经比较熟悉（好感度" + v + "/100），态度自然友好，会主动找话题，偶尔开点小玩笑，但仍保持正常朋友分寸。";
+  if (lv.lv === 3) return "当前你和老师关系亲近（好感度" + v + "/100），态度热情熟络，会主动关心老师，偶尔撒娇或开玩笑。";
   return "当前你和老师非常亲密（好感度" + v + "/100），态度非常亲近，会自然地撒娇、主动表达关心和喜爱，把老师当成最重要的人。";
 }
 var POSITIVE_WORDS = ["喜欢", "真棒", "辛苦了", "谢谢", "可爱", "厉害", "加油", "表扬", "好乖", "最棒", "温暖", "治愈"];
@@ -1624,7 +1777,6 @@ function escapeHTML(s) {
     return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[m];
   });
 }
-/* ===== 安全加固：data: 图片只允许光栅 MIME，排除 SVG（来源：OWASP XSS 防御备忘单） ===== */
 var ALLOWED_IMAGE_MIMES = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "image/bmp"];
 function isSafeImageDataURL(s) {
   if (!s || typeof s !== "string" || !s.startsWith("data:image/")) return false;
@@ -1648,13 +1800,9 @@ function isDarkMode() {
   } catch (e) {}
   return false;
 }
-
-/* ===== #3 深色模式角色名消失修复：颜色跟随主题 ===== */
 function getAvatarTextColor() {
   return "var(--avatar-text)";
 }
-
-/* ===== #4 设备性能分级（来源：@adaptive-bundle/core 评分逻辑简化版） ===== */
 function getDeviceTier() {
   var cores = navigator.hardwareConcurrency || 2;
   var mem = navigator.deviceMemory || 2;
@@ -1664,47 +1812,130 @@ function getDeviceTier() {
   return "low";
 }
 
-/* ===== #9 服务商注册表：只保留直连友好服务商；智谱标注 needRelay（A1：已去掉 defaultProxy） ===== */
 var PROVIDER_REGISTRY = [
-  { id: 'anthropic',  name: 'Anthropic',       prefix: /^sk-ant-/,                              url: 'https://api.anthropic.com/v1/messages',                                       model: 'claude-3-5-haiku-20241022',              registerUrl: 'https://console.anthropic.com/',              registerText: '还没注册？点这里 →', needRelay: false },
-  { id: 'openrouter', name: 'OpenRouter',      prefix: /^sk-or-v1-/,                            url: 'https://openrouter.ai/api/v1/chat/completions',                               model: 'google/gemini-2.0-flash-exp:free',       registerUrl: 'https://openrouter.ai/keys',                  registerText: '还没注册？点这里 →', needRelay: false },
-  { id: 'groq',       name: 'Groq',            prefix: /^gsk_/,                                 url: 'https://api.groq.com/openai/v1/chat/completions',                             model: 'llama-3.3-70b-versatile',                registerUrl: 'https://console.groq.com/keys',               registerText: '还没注册？点这里 →', needRelay: false },
-  { id: 'gemini',     name: 'Google Gemini',   prefix: /^AIza/,                                 url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',    model: 'gemini-1.5-flash',                       registerUrl: 'https://aistudio.google.com/app/apikey',      registerText: '还没注册？点这里 →', needRelay: false },
-  { id: 'zhipu',      name: '智谱 AI',         prefix: /^[A-Za-z0-9]{32}\.[A-Za-z0-9]{16}$/,    url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',                       model: 'glm-4-flash',                            registerUrl: 'https://open.bigmodel.cn/',                   registerText: '还没注册？点这里 →', needRelay: true },
-  { id: 'aion',       name: 'Aion Labs',       prefix: /aion/i,                                 url: 'https://api.aionlabs.ai/v1/chat/completions',                                 model: 'aion-labs/aion-rp-llama-3.1-8b',         registerUrl: 'https://www.aionlabs.ai/app/api-keys/',       registerText: '还没注册？点这里 →', needRelay: false },
-  { id: 'deepseek',   name: 'DeepSeek',        prefix: /^sk-[a-f0-9]{32}$/,                     url: 'https://api.deepseek.com/v1/chat/completions',                                model: 'deepseek-chat',                          registerUrl: 'https://platform.deepseek.com/',              registerText: '还没注册？点这里 →', needRelay: false },
-  { id: 'openai',     name: 'OpenAI',          prefix: /^sk-(proj-|svcacct-)?[A-Za-z0-9_-]{20,}/,url: 'https://api.openai.com/v1/chat/completions',                                 model: 'gpt-4o-mini',                            registerUrl: 'https://platform.openai.com/api-keys',        registerText: '还没注册？点这里 →', needRelay: false },
-  { id: 'custom',     name: '自定义',           prefix: null,                                    url: '',                                                                            model: '',                                       registerUrl: '',                                            registerText: '',                  needRelay: false }
+  { id: 'deepseek', group: 'cn', name: 'DeepSeek', prefix: null,
+    url: 'https://api.deepseek.com/v1/chat/completions',
+    model: 'deepseek-chat',
+    registerUrl: 'https://platform.deepseek.com/',
+    modelPrefer: ['deepseek-chat'] },
+  { id: 'zhipu', group: 'cn', name: '智谱', prefix: /^[A-Za-z0-9]{32}\.[A-Za-z0-9]{16}$/,
+    url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+    model: 'glm-4-flash',
+    registerUrl: 'https://open.bigmodel.cn/',
+    params: { extra: { thinking: { type: 'disabled' } } },
+    modelPrefer: ['glm-4-flash', 'glm-4.5-flash', 'glm-4-flash-250414'] },
+  { id: 'qwen', group: 'cn', name: '通义千问', prefix: null,
+    url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    model: 'qwen-plus',
+    registerUrl: 'https://bailian.console.aliyun.com/',
+    params: { extra: { enable_thinking: false } },
+    modelPrefer: ['qwen-plus', 'qwen-turbo', 'qwen-flash'] },
+  { id: 'kimi', group: 'cn', name: 'Kimi', prefix: null,
+    url: 'https://api.moonshot.cn/v1/chat/completions',
+    model: 'moonshot-v1-8k',
+    registerUrl: 'https://platform.moonshot.cn/',
+    modelPrefer: ['moonshot-v1-8k', 'moonshot-v1-32k', 'kimi-k2-turbo-preview'] },
+  { id: 'siliconflow', group: 'cn', name: '硅基流动', prefix: null,
+    url: 'https://api.siliconflow.cn/v1/chat/completions',
+    model: 'Qwen/Qwen3-8B',
+    registerUrl: 'https://cloud.siliconflow.cn/',
+    params: { extra: { enable_thinking: false } },
+    modelPrefer: ['Qwen/Qwen3-8B', 'Qwen/Qwen2.5-7B-Instruct'] },
+  { id: 'gemini', group: 'intl', name: 'Gemini', prefix: /^AIza/,
+    url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    model: 'gemini-3.8-flash',
+    registerUrl: 'https://aistudio.google.com/app/apikey',
+    params: { maxTokens: 2000, extra: { reasoning_effort: 'low' } },
+    modelPrefer: ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-flash'] },
+  { id: 'openrouter', group: 'intl', name: 'OpenRouter', prefix: /^sk-or-v1-/,
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    model: 'meta-llama/llama-3.3-70b-instruct:free',
+    registerUrl: 'https://openrouter.ai/keys',
+    modelPrefer: [/^meta-llama\/llama-3\.3-70b-instruct:free$/, /^deepseek\/deepseek-chat[\w.-]*:free$/, /^qwen\/qwen[\w.-]*instruct[\w.-]*:free$/, /^google\/gemma[\w.-]*:free$/, /^mistralai\/mistral[\w.-]*:free$/] },
+  { id: 'groq', group: 'intl', name: 'Groq', prefix: /^gsk_/,
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'llama-3.3-70b-versatile',
+    registerUrl: 'https://console.groq.com/keys',
+    modelPrefer: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'] },
+  { id: 'mistral', group: 'intl', name: 'Mistral', prefix: null,
+    url: 'https://api.mistral.ai/v1/chat/completions',
+    model: 'mistral-small-latest',
+    registerUrl: 'https://console.mistral.ai/api-keys/',
+    modelPrefer: ['mistral-small-latest', 'mistral-medium-latest'] },
+  { id: 'anthropic', group: 'intl', name: 'Anthropic', prefix: /^sk-ant-/,
+    url: 'https://api.anthropic.com/v1/chat/completions',
+    model: 'claude-3-5-haiku-20241022',
+    registerUrl: 'https://console.anthropic.com/',
+    modelPrefer: [/^claude-[\w.-]*haiku[\w.-]*$/] },
+  { id: 'custom', group: 'other', name: '自定义', prefix: null, url: '', model: '', registerUrl: '' }
 ];
 
-/* ===== 规则 D 三档识别：高置信自动选中 / 低置信不选中提示手动 / 未识别提示中转站 ===== */
 function detectProviderTiered(key) {
   if (!key) return { tier: "none", provider: null, candidates: [] };
-  // OpenAI 高置信：sk-proj- 或含 T3BlbkFJ
-  if (/^sk-proj-/.test(key) || key.indexOf("T3BlbkFJ") >= 0) {
-    var oa = PROVIDER_REGISTRY.find(function(p){ return p.id === "openai"; });
-    return { tier: "high", provider: oa, candidates: ["openai"] };
-  }
-  // 其他服务商精确匹配（跳过 openai 宽正则，避免普通 sk- 被误判高置信）
   for (var i = 0; i < PROVIDER_REGISTRY.length; i++) {
     var p = PROVIDER_REGISTRY[i];
-    if (p.id === "openai" || p.id === "custom") continue;
-    if (p.prefix && p.prefix.test(key)) {
+    if (p.id === "custom" || !p.prefix) continue;
+    if (p.prefix.test(key)) {
       return { tier: "high", provider: p, candidates: [p.id] };
     }
   }
-  // 模糊前缀：低置信，不自动选中
-  if (/^sk-/.test(key)) return { tier: "low", provider: null, candidates: ["openai", "deepseek", "custom"] };
-  if (/^gsk_/.test(key)) return { tier: "low", provider: null, candidates: ["groq"] };
-  if (/^sk-or-/.test(key)) return { tier: "low", provider: null, candidates: ["openrouter"] };
-  if (/^sk-ant-/.test(key)) return { tier: "low", provider: null, candidates: ["anthropic"] };
+  if (/^sk-/.test(key)) return { tier: "low", provider: null, candidates: ["deepseek", "qwen", "kimi", "siliconflow", "custom"] };
   return { tier: "none", provider: null, candidates: [] };
 }
 
+function normalizeApiUrl(raw) {
+  var u = String(raw || "").trim();
+  if (!u) return "";
+  var x;
+  try { x = new URL(u); } catch (e) { return u; }
+  var path = x.pathname.replace(/\/+$/, "");
+  if (/\/chat\/completions$/i.test(path)) return u;
+  if (path === "") return x.origin + "/v1/chat/completions" + x.search;
+  if (/\/(v\d+(beta)?|openai|api\/paas\/v\d+|compatible-mode\/v\d+)$/i.test(path)) {
+    return x.origin + path + "/chat/completions" + x.search;
+  }
+  return u;
+}
+
+var LEGACY_PROVIDERS = {
+  zhipu:  { name: "智谱 AI",   url: "https://open.bigmodel.cn/api/paas/v4/chat/completions", model: "glm-4-flash" },
+  aion:   { name: "Aion Labs", url: "https://api.aionlabs.ai/v1/chat/completions",           model: "aion-labs/aion-rp-llama-3.1-8b" },
+  openai: { name: "OpenAI",    url: "https://api.openai.com/v1/chat/completions",            model: "gpt-4o-mini" }
+};
+function migrateLegacyProvider() {
+  try {
+    var saved = localStorage.getItem("momotalk_provider");
+    if (!saved || !Object.prototype.hasOwnProperty.call(LEGACY_PROVIDERS, saved)) return;
+    var stillExists = PROVIDER_REGISTRY.some(function(r) { return r.id === saved; });
+    if (stillExists) return;
+    var old = LEGACY_PROVIDERS[saved];
+    
+    // 避免覆盖老用户已经填写的自定义配置
+    if (!localStorage.getItem("momotalk_custom_url")) {
+      localStorage.setItem("momotalk_custom_url", old.url);
+    }
+    if (!localStorage.getItem("momotalk_custom_model")) {
+      localStorage.setItem("momotalk_custom_model", old.model);
+    }
+    
+    localStorage.setItem("momotalk_provider", "custom");
+    setTimeout(function() {
+      showToast("「" + old.name + "」已转为「自定义」，密钥和设置已保留，可继续使用");
+    }, 800);
+  } catch (e) {}
+}
 function getProvider() {
-  var p = localStorage.getItem("momotalk_provider") || "zhipu";
+  var p = localStorage.getItem("momotalk_provider") || "deepseek";
   var found = PROVIDER_REGISTRY.find(function(r){ return r.id === p; });
-  return found ? p : "zhipu";
+  return found ? p : "deepseek";
+}
+function getModelOverrides() {
+  try { return JSON.parse(localStorage.getItem("momotalk_model_override")) || {}; } catch (e) { return {}; }
+}
+function setModelOverride(pid, model) {
+  var o = getModelOverrides();
+  if (model) o[pid] = model; else delete o[pid];
+  try { localStorage.setItem("momotalk_model_override", JSON.stringify(o)); } catch (e) {}
 }
 function getProviderConfig() {
   var p = getProvider();
@@ -1716,13 +1947,20 @@ function getProviderConfig() {
   }
   var cfg = PROVIDER_REGISTRY.find(function(r){ return r.id === p; });
   if (!cfg) cfg = PROVIDER_REGISTRY[0];
-  return { url: cfg.url, model: cfg.model };
+  return { url: cfg.url, model: getModelOverrides()[p] || cfg.model };
 }
 function getApiKey() { return localStorage.getItem("momotalk_apikey") || ""; }
-function getProxyUrl() { return localStorage.getItem("momotalk_proxy_url") || ""; }
+function getProxyUrl() {
+  var enabled = localStorage.getItem("momotalk_proxy_enabled");
+  // 如果用户明确关了开关，直接返回空，走直连
+  if (enabled === "false") return "";
+  
+  // 如果没关，就用用户填的，没填就用默认的 Worker
+  return localStorage.getItem("momotalk_proxy_url") || "https://momo-proxy.h-00ab.workers.dev";
+}
 
-/* ===== #9 + #1 askForApiKey 重写：简约 Select + 实时三档识别 + 高级设置折叠 + 智谱自动展开 ===== */
-function askForApiKey() {
+function askForApiKey(opts) {
+  var expandAdvanced = !!(opts && opts.expandAdvanced === true);
   var currentProvider = getProvider();
   var currentKey = getApiKey();
   var customUrl = localStorage.getItem("momotalk_custom_url") || "";
@@ -1738,12 +1976,17 @@ function askForApiKey() {
   }
 
   var body = '<div class="field">' +
-    '<label>API Key</label>' +
-    '<input id="apiKeyInput" placeholder="粘贴你的 API Key" value="' + escapeHTML(currentKey) + '">' +
-    '<div id="detectHint" style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">粘贴 Key 后自动识别服务商</div>' +
-  '</div>';
+  '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">' +
+    '<label style="margin-bottom:0;">API 密钥</label>' +
+    '<a id="getKeyLink" class="get-key-link" target="_blank" rel="noopener">获取密钥 ↗</a>' +
+  '</div>' +
+  '<div style="position:relative;">' +
+    '<input id="apiKeyInput" type="text" placeholder="粘贴你的 API 密钥" value="' + escapeHTML(currentKey) + '" style="padding-right:60px; -webkit-text-security: disc; text-security: disc;">' +
+    '<button type="button" id="apiKeyToggleBtn" aria-label="显示或隐藏密钥" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:0 10px;height:32px;font-size:13px;color:var(--text-secondary);background:none;border:none;cursor:pointer;white-space:nowrap;">显示</button>' +
+  '</div>' +
+  '<div id="detectHint" style="font-size:12px;color:#999;margin-top:4px;line-height:1.5;">粘贴密钥后自动识别服务商</div>' +
+'</div>';
 
-  // ====== 服务商下拉 ======
   body += '<div class="field"><label>服务商</label>' +
     '<div class="provider-select" id="providerSelect">' +
       '<button type="button" class="provider-trigger" id="providerTrigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="providerOptionList">' +
@@ -1752,20 +1995,26 @@ function askForApiKey() {
       '</button>' +
       '<div class="provider-options" id="providerOptionList" role="listbox" aria-label="选择服务商">';
 
+  var groupTitles = { cn: "国内模型", intl: "国外模型", other: "其他" };
+  var groupNotes = { intl: "部分服务在国内可能需要特殊网络" };
+  var lastGroup = "";
   for (var i = 0; i < PROVIDER_REGISTRY.length; i++) {
     var p = PROVIDER_REGISTRY[i];
+    if (p.group !== lastGroup) {
+      lastGroup = p.group;
+      body += '<div class="provider-group-title" role="presentation">' + groupTitles[p.group] + '</div>';
+      if (groupNotes[p.group]) body += '<div class="provider-group-note" role="presentation">' + groupNotes[p.group] + '</div>';
+    }
     var selectedAttr = (p.id === currentProvider) ? ' aria-selected="true"' : ' aria-selected="false"';
     body += '<div class="provider-option-row" role="option" tabindex="0" data-provider="' + p.id + '"' + selectedAttr + '>' +
       '<span class="opt-name">' + escapeHTML(p.name) + '</span>' +
-      (p.registerUrl ? '<a class="opt-link" href="' + escapeHTML(p.registerUrl) + '" target="_blank" rel="noopener">还没注册？点这里 →</a>' : '') +
     '</div>';
   }
 
   body += '</div></div></div>';
 
-  body += '<div class="provider-hint">Key 只保存在你手机浏览器里，不会包含在导出文件中。</div>';
+  body += '<div class="provider-hint">密钥只保存在你手机浏览器里，不会包含在导出文件中。</div>';
 
-  // ====== 高级设置下拉 ======
   body += '<div class="field" style="margin-top:12px; position:relative; z-index:2;">' +
     '<div class="provider-trigger" id="advancedToggle">' +
       '<span style="font-size:15px;color:var(--text);">高级设置</span>' +
@@ -1775,29 +2024,38 @@ function askForApiKey() {
       '<div class="field" id="customUrlField" style="display:none;">' +
         '<label>API 地址</label>' +
         '<input id="apiUrlInput" placeholder="https://..." value="' + escapeHTML(customUrl) + '">' +
+        '<div class="field-hint" id="apiUrlPreview"></div>' +
       '</div>' +
-      '<div class="field" id="customModelField" style="display:none;">' +
-        '<label>模型名称</label>' +
-        '<input id="apiModelInput" placeholder="例如 glm-4-flash" value="' + escapeHTML(customModel) + '">' +
-      '</div>' +
-      '<div class="field" style="margin-top:12px; padding-top:12px;">' +
+      '<div class="field" id="customModelField">' +
         '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">' +
-          '<label style="margin-bottom:0;">自定义代理地址（可选）</label>' +
-          '<div id="helpProxyBtn" style="font-size:12px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px; cursor:pointer;">' +
-            '<span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border:1px solid currentColor; border-radius:50%; font-size:10px; font-weight:bold;">?</span>' +
-            '如何填写？' +
-          '</div>' +
+          '<label style="margin-bottom:0;">模型名称</label>' +
+          '<button type="button" id="fetchModelsBtn" class="link-btn">获取列表</button>' +
         '</div>' +
-        '<input id="proxyUrlInput" placeholder="https://your-worker.workers.dev" value="' + escapeHTML(proxyUrl) + '">' +
+        '<input id="apiModelInput" list="modelDatalist" autocomplete="off" placeholder="" value="">' +
+        '<datalist id="modelDatalist"></datalist>' +
+      '</div>' +
+      '<div class="field" style="margin-top:12px; padding-top:12px; border-top: 1px solid var(--border);">' +
+  '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">' +
+    '<label style="margin-bottom:0;">网络代理（解决部分地区无法直连）</label>' +
+    '<span class="glass-toggle" id="proxyToggle" role="switch" aria-label="代理开关"></span>' +
+  '</div>' +
+  '<div id="proxyInputWrap">' +
+    '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; margin-top:10px;">' +
+      '<label style="margin-bottom:0;">代理地址（默认使用内置代理）</label>' +
+      '<div id="helpProxyBtn" style="font-size:12px; color:var(--text-secondary); display:inline-flex; align-items:center; gap:4px; cursor:pointer;">' +
+        '<span style="display:inline-flex; align-items:center; justify-content:center; width:14px; height:14px; border:1px solid currentColor; border-radius:50%; font-size:10px; font-weight:bold;">?</span>' +
+        '如何填写？' +
       '</div>' +
     '</div>' +
+    '<input id="proxyUrlInput" placeholder="https://your-worker.workers.dev" value="' + escapeHTML(proxyUrl) + '">' +
+  '</div>' +
+'</div>' +
   '</div>';
 
   var footer = '<button class="btn-secondary" id="keyCancel">取消</button><button class="btn-primary" id="keySave">保存</button>';
 
   openModal("设置 AI 服务", body, footer);
 
-  // 固定弹窗高度
   var modalEl = document.querySelector("#modalMask .modal");
   if (modalEl) {
     modalEl.style.height = "80vh";
@@ -1805,6 +2063,7 @@ function askForApiKey() {
   }
 
   var apiKeyEl = document.getElementById("apiKeyInput");
+  var apiKeyToggleBtn = document.getElementById("apiKeyToggleBtn");
   var hintEl = document.getElementById("detectHint");
   var providerSelect = document.getElementById("providerSelect");
   var providerTrigger = document.getElementById("providerTrigger");
@@ -1814,7 +2073,43 @@ function askForApiKey() {
   var advancedSettings = document.getElementById("advancedSettings");
   var advancedArrow = document.getElementById("advancedArrow");
 
-  // 统一关闭面板逻辑
+  var keyRevealed = false;
+  // ====== 新增：代理开关逻辑 ======
+var proxyToggle = document.getElementById("proxyToggle");
+var proxyInputWrap = document.getElementById("proxyInputWrap");
+var isProxyEnabled = localStorage.getItem("momotalk_proxy_enabled") !== "false";
+
+function updateProxyUI() {
+  proxyToggle.classList.toggle("on", isProxyEnabled);
+  proxyToggle.setAttribute("aria-checked", isProxyEnabled);
+  proxyInputWrap.style.display = isProxyEnabled ? "" : "none";
+}
+updateProxyUI();
+
+proxyToggle.addEventListener("click", function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  isProxyEnabled = !isProxyEnabled;
+  updateProxyUI();
+});
+// ====== 新增结束 ======
+apiKeyToggleBtn.addEventListener("click", function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  keyRevealed = !keyRevealed;
+  if (keyRevealed) {
+    apiKeyEl.style.setProperty("-webkit-text-security", "none");
+    apiKeyEl.style.setProperty("text-security", "none");
+    apiKeyToggleBtn.textContent = "隐藏";
+    apiKeyToggleBtn.setAttribute("aria-label", "隐藏密钥");
+  } else {
+    apiKeyEl.style.setProperty("-webkit-text-security", "disc");
+    apiKeyEl.style.setProperty("text-security", "disc");
+    apiKeyToggleBtn.textContent = "显示";
+    apiKeyToggleBtn.setAttribute("aria-label", "显示密钥");
+  }
+});
+
   function closeAllDropdowns() {
     providerSelect.classList.remove("open");
     providerTrigger.setAttribute("aria-expanded", "false");
@@ -1845,7 +2140,6 @@ function askForApiKey() {
     updateCustomFields();
   }
 
-  // 1. 服务商点击
   providerTrigger.addEventListener("click", function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -1882,7 +2176,6 @@ function askForApiKey() {
     }
   });
 
-  // 2. 高级设置点击
   advancedToggle.addEventListener("click", function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -1894,7 +2187,6 @@ function askForApiKey() {
     }
   });
 
-  // 3. 全局外部点击关闭
   if (window.__momoDocClickHandler) {
     document.removeEventListener("click", window.__momoDocClickHandler);
   }
@@ -1905,86 +2197,142 @@ function askForApiKey() {
   };
   document.addEventListener("click", window.__momoDocClickHandler);
 
-  // 核心修复：阻止高级设置面板内部的点击事件冒泡到全局
   advancedSettings.addEventListener("click", function(e) {
     e.stopPropagation();
   });
 
-  // 4. 帮助按钮
   document.getElementById("helpProxyBtn").addEventListener("click", function(e) {
     e.stopPropagation();
-    showToast("遇到跨域请填 Worker 地址；智谱 AI 必须填写代理。");
+    showToast("仅当所选服务商要求代理时才需填写。");
   });
 
+  var lastModelProvider = null;
+  function getSelectedProviderId() {
+    var row = document.querySelector('#providerOptionList .provider-option-row[aria-selected="true"]');
+    return row ? row.getAttribute("data-provider") : getProvider();
+  }
+  function updateUrlPreview() {
+    var el = document.getElementById("apiUrlPreview");
+    if (!el) return;
+    var raw = document.getElementById("apiUrlInput").value.trim();
+    if (!raw) { el.textContent = ""; return; }
+    var fin = normalizeApiUrl(raw);
+    el.textContent = (fin === raw ? "将按此地址请求：" : "将自动补全为：") + fin;
+  }
   function updateCustomFields() {
-    var selectedRow = document.querySelector('#providerOptionList .provider-option-row[aria-selected="true"]');
-    var selected = selectedRow ? selectedRow.getAttribute("data-provider") : "zhipu";
-    var urlField = document.getElementById("customUrlField");
-    var modelField = document.getElementById("customModelField");
-    if (selected === "custom") {
-      urlField.style.display = "";
-      modelField.style.display = "";
-    } else {
-      urlField.style.display = "none";
-      modelField.style.display = "none";
+    var selected = getSelectedProviderId();
+    var entry = PROVIDER_REGISTRY.find(function(r) { return r.id === selected; });
+    document.getElementById("customUrlField").style.display = selected === "custom" ? "" : "none";
+    var modelInput = document.getElementById("apiModelInput");
+    if (selected !== lastModelProvider) {
+      lastModelProvider = selected;
+      if (selected === "custom") {
+        modelInput.placeholder = "例如 gpt-4o-mini";
+        modelInput.value = customModel;
+      } else {
+        modelInput.placeholder = "默认：" + (entry ? entry.model : "") + "（可不填）";
+        modelInput.value = getModelOverrides()[selected] || "";
+      }
+      document.getElementById("modelDatalist").innerHTML = "";
     }
-    if (selected === "custom" || selected === "zhipu") {
-      advancedSettings.style.display = "block";
-      advancedArrow.style.transform = "rotate(-135deg)";
+    var link = document.getElementById("getKeyLink");
+    if (entry && entry.registerUrl) {
+      link.href = entry.registerUrl;
+      link.style.display = "";
+      link.setAttribute("aria-label", "前往 " + entry.name + " 官网获取密钥（在新窗口打开）");
+    } else {
+      link.removeAttribute("href");
+      link.style.display = "none";
     }
   }
 
-  function updateDetectHint() {
-    var key = apiKeyEl.value.trim();
-    if (!key) {
-      hintEl.textContent = "粘贴 Key 后自动识别服务商";
-      hintEl.style.color = "#999";
-      return;
-    }
-    var result = detectProviderTiered(key);
-    if (result.tier === "high") {
-      var p = result.provider;
-      hintEl.textContent = "检测到 " + p.name + " 格式，已选中，可更改" + (p.needRelay ? "（需填代理地址）" : "");
-      hintEl.style.color = "#999"; 
+  function updateDetectHint(isAutoSelect) {
+  var key = apiKeyEl.value.trim();
+  hintEl.className = ""; 
+  if (!key) {
+    hintEl.textContent = "粘贴密钥后自动识别服务商";
+    hintEl.style.color = "#999";
+    return;
+  }
+  var result = detectProviderTiered(key);
+  if (result.tier === "high") {
+    var p = result.provider;
+    var curRow = document.querySelector('#providerOptionList .provider-option-row[aria-selected="true"]');
+    var curId = curRow ? curRow.getAttribute("data-provider") : "";
+    hintEl.textContent = isAutoSelect 
+      ? ("检测到 " + p.name + " 格式，已选中，可更改")
+      : (p.id === curId
+          ? ("检测到 " + p.name + " 格式，已选中")
+          : ("检测到 " + p.name + " 格式，当前未使用"));
+    hintEl.style.color = "#999";
+    
+    if (isAutoSelect) {
       var row = document.querySelector('#providerOptionList .provider-option-row[data-provider="' + p.id + '"]');
       if (row) selectProviderRow(row);
-    } else if (result.tier === "low") {
-      var names = result.candidates.map(function(id) {
-        var r = PROVIDER_REGISTRY.find(function(x) { return x.id === id; });
-        return r ? r.name : id;
-      }).join(" / ");
-      hintEl.textContent = "可能是 " + names + "，请手动选择";
-      hintEl.style.color = "#e8b84a";
-      openProviderOptions();
-    } else {
-      hintEl.textContent = "未识别，请手动选择；中转站请选自定义并填写地址";
-      hintEl.style.color = "#e8b84a";
-      openProviderOptions();
     }
+  } else if (result.tier === "low") {
+    var names = result.candidates.map(function(id) {
+      var r = PROVIDER_REGISTRY.find(function(x) { return x.id === id; });
+      return r ? r.name : id;
+    }).join(" / ");
+    hintEl.textContent = result.candidates.length > 3
+      ? "这种格式的密钥有多家在用，请手动选择服务商"
+      : "可能是 " + names + "，请手动确认";
+    hintEl.className = "hint-warn";
+    if (isAutoSelect) openProviderOptions();
+  } else {
+    hintEl.textContent = "未识别服务商，请手动选择；使用中转站请选自定义";
+    hintEl.className = "hint-warn";
+    if (isAutoSelect) openProviderOptions();
   }
-  apiKeyEl.addEventListener("input", updateDetectHint);
+}
 
-  updateCustomFields();
-  if (currentKey) updateDetectHint();
+apiKeyEl.addEventListener("input", function() { updateDetectHint(true); });
 
-  // 5. 取消与保存
+updateCustomFields();
+if (currentKey) updateDetectHint(false);
+
+  document.getElementById("apiUrlInput").addEventListener("input", updateUrlPreview);
+  updateUrlPreview();
+  document.getElementById("fetchModelsBtn").addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var btn = this;
+    var key = apiKeyEl.value.trim();
+    if (!key) { showToast("请先填写 API 密钥"); return; }
+    var selected = getSelectedProviderId();
+    var entry = PROVIDER_REGISTRY.find(function(r) { return r.id === selected; });
+    var url = selected === "custom"
+      ? normalizeApiUrl(document.getElementById("apiUrlInput").value.trim())
+      : (entry ? entry.url : "");
+    if (!url) { showToast("请先填写 API 地址"); return; }
+    var proxy = document.getElementById("proxyUrlInput").value.trim();
+    btn.disabled = true;
+    btn.textContent = "获取中…";
+    fetchModelList(url, key, proxy).then(function(list) {
+      var dl = document.getElementById("modelDatalist");
+      dl.innerHTML = list.slice(0, 200).map(function(id) {
+        return '<option value="' + escapeAttr(id) + '"></option>';
+      }).join("");
+      showToast(list.length ? ("已获取 " + list.length + " 个模型，点“模型名称”输入框即可选择") : "服务商没有返回模型列表");
+    }).catch(function(err) {
+      showToast("获取失败：" + ((err && err.message) || "请检查密钥和网络"));
+    }).then(function() {
+      btn.disabled = false;
+      btn.textContent = "获取列表";
+    });
+  });
+  if (expandAdvanced) advancedToggle.click();
+
   document.getElementById("keyCancel").addEventListener("click", function() {
     if (window.__momoDocClickHandler) document.removeEventListener("click", window.__momoDocClickHandler);
     closeModal();
   });
 
   document.getElementById("keySave").addEventListener("click", function() {
-    var selectedRow = document.querySelector('#providerOptionList .provider-option-row[aria-selected="true"]');
-    var selected = selectedRow ? selectedRow.getAttribute("data-provider") : "zhipu";
-
+    var selected = getSelectedProviderId();
     var key = apiKeyEl.value.trim();
-    if (!key) { showToast("请输入 API Key"); return; }
-
-    var tierResult = detectProviderTiered(key);
-    if (selected === "openai" && tierResult.tier === "low" &&
-        !/T3BlbkFJ/.test(key) && !/^sk-proj-/.test(key)) {
-      showToast("Key 不含 OpenAI 典型特征，请确认是否选错服务商");
-    }
+    if (!key) { showToast("请输入 API 密钥"); return; }
 
     var proxyInput = document.getElementById("proxyUrlInput").value.trim();
     if (proxyInput && !/^https?:\/\//i.test(proxyInput)) {
@@ -1992,11 +2340,12 @@ function askForApiKey() {
       return;
     }
     localStorage.setItem("momotalk_proxy_url", proxyInput);
+localStorage.setItem("momotalk_proxy_enabled", isProxyEnabled ? "true" : "false");
 
+    var modelInput = document.getElementById("apiModelInput").value.trim();
     if (selected === "custom") {
-      var url = document.getElementById("apiUrlInput").value.trim();
-      var model = document.getElementById("apiModelInput").value.trim();
-      if (!url || !model) { showToast("自定义模式下请填写地址和模型"); return; }
+      var url = normalizeApiUrl(document.getElementById("apiUrlInput").value.trim());
+      if (!url || !modelInput) { showToast("自定义模式下请填写地址和模型"); return; }
       try {
         var u = new URL(url);
         if (u.protocol !== "https:" && u.protocol !== "http:") {
@@ -2008,28 +2357,26 @@ function askForApiKey() {
         return;
       }
       localStorage.setItem("momotalk_custom_url", url);
-      localStorage.setItem("momotalk_custom_model", model);
+      localStorage.setItem("momotalk_custom_model", modelInput);
+    } else {
+      setModelOverride(selected, modelInput);
     }
 
     localStorage.setItem("momotalk_apikey", key);
     localStorage.setItem("momotalk_provider", selected);
     if (window.__momoDocClickHandler) document.removeEventListener("click", window.__momoDocClickHandler);
     closeModal();
-    var saveMsg = "已保存";
-    if (proxyInput) saveMsg += "；若请求被 CSP 拦截，请把代理域名加入 connect-src";
-    showToast(saveMsg);
+    showToast("已保存，正在检测连接…");
+    setTimeout(runConnectionCheck, 400);
   });
 }
 function deleteApiKey() {
-  if (!getApiKey()) { showToast("当前没有保存任何 Key"); return; }
-  showConfirm("删除 Key", "确定删除已保存的 API Key 吗？删除后将无法使用 AI 回复，直到重新设置。", function() {
+  if (!getApiKey()) { showToast("当前没有保存任何密钥"); return; }
+  showConfirm("删除密钥", "确定删除已保存的 API 密钥吗？删除后将无法使用 AI 回复，直到重新设置。", function() {
     localStorage.removeItem("momotalk_apikey");
-    showToast("API Key 已删除");
+    showToast("API 密钥已删除");
   });
 }
-var FALLBACK_REPLY = "老师，您的token用完了哦~";
-
-/* ===== #5 系统硬规则：所有人设都会附加，用户无需理解也不需要填写 ===== */
 var SYSTEM_RULES =
   "【硬性规则，所有角色都必须遵守】\n" +
   "1. 你是角色本人，不是 AI 助手，禁止使用「作为 AI」「我不能」这类表述。\n" +
@@ -2060,7 +2407,6 @@ var STORAGE_KEYS = {
   memories: "momotalk_memories"
 };
 
-/* ===== #5 #6 人设全部重写：去 fullName、去 hobbies、去形容词堆砌，改为行为规则 + 语言指纹 ===== */
 var DEFAULT_CHARS = [
   {
     id: "hoshino", name: "星野", school: "阿拜多斯",
@@ -2107,8 +2453,9 @@ var currentChatId = null;
 var currentEditorCharId = null;
 var editorPendingAvatar = null;
 var sendingStatus = {};
+var replyControllers = {};
 var pendingBounce = {};
-var liquidGlassInstances = []; // 核心：用来存放所有实例
+var liquidGlassInstances = [];
 
 function isSending() { return !!sendingStatus[currentChatId]; }
 function isGlassEnabled() { return localStorage.getItem(STORAGE_KEYS.glass) !== "0"; }
@@ -2117,8 +2464,8 @@ function applyGlassState() {
   document.body.classList.toggle("no-glass", !enabled);
   var stateEl = document.getElementById("glassState");
   if (stateEl) {
-    stateEl.textContent = enabled ? "已开启" : "已关闭";
-    stateEl.classList.toggle("off", !enabled);
+    stateEl.classList.toggle("on", enabled);
+    stateEl.setAttribute("aria-checked", enabled ? "true" : "false");
   }
 }
 function toggleGlass() {
@@ -2128,7 +2475,6 @@ function toggleGlass() {
   
   if (enabled) {
     showToast("液态玻璃效果已关闭");
-    // 核心：精准遍历实例进行销毁
     if (liquidGlassInstances.length > 0) {
       liquidGlassInstances.forEach(function(inst) {
         if (inst && typeof inst.destroy === 'function') {
@@ -2144,7 +2490,6 @@ function toggleGlass() {
     }
   }
 }
-
 function safeSetItem(key, value) {
   try {
     localStorage.setItem(key, value);
@@ -2173,7 +2518,6 @@ function saveMsgs(charId) {
 function deleteMsgsKey(charId) {
   try { localStorage.removeItem(STORAGE_KEYS.msgsPrefix + charId); } catch (e) {}
 }
-/* ===== #B2 迁移：任一 safeSetItem 失败就不写标记，下次启动重试 ===== */
 function migrateMsgsToSplit() {
   if (localStorage.getItem(STORAGE_KEYS.msgsSplit) === "1") return;
   try {
@@ -2237,7 +2581,6 @@ function loadData() {
     if (personaChanged) saveChars();
     localStorage.setItem("momotalk_persona_v2_migrated", "1");
   }
-  /* ===== Bug 4：只覆盖仍以旧默认人设开头的角色，用户手动改过的人设不覆盖 ===== */
   if (!localStorage.getItem("momotalk_persona_v3_migrated")) {
     var updated = false;
     var oldPersonaSnapshots = {
@@ -2300,11 +2643,8 @@ function fmtTimeDivider(ts) {
   return (d.getMonth() + 1) + "月" + d.getDate() + "日 " + pad(d.getHours()) + ":" + pad(d.getMinutes());
 }
 function showErrorModal(msg) {
-  var body =
-    '<div style="text-align:center;padding:10px 0;">' +
-    '<div style="font-size:18px;font-weight:600;color:#333;margin-bottom:10px;">连接异常</div>' +
-    '<div style="font-size:14px;color:#555;line-height:1.6;">' + escapeHTML(msg) + '<br>请稍后重试</div></div>';
-  var footer = '<button class="btn-primary" id="errorOk" style="flex:1;">知道了</button>';
+  var body = '<div class="err-dialog"><div class="err-msg">' + escapeHTML(msg) + '</div></div>';
+  var footer = '<button class="btn-primary" id="errorOk" style="flex:1;">我知道了</button>';
   openModal('提示', body, footer);
   document.getElementById('errorOk').addEventListener('click', closeModal);
 }
@@ -2323,7 +2663,6 @@ function safeColor(c) {
   if (/^hsla?\(\s*[\d\s,.%]+\s*\)$/.test(s)) return s;
   return "#999999";
 }
-/* ===== #B5 emoji 首字母：Array.from(name)[0] 按码点切分 ===== */
 function avatarHTML(char, cls) {
   cls = cls || "";
   var c = char || TEACHER;
@@ -2347,61 +2686,313 @@ function setHeaderAvatar(el, char) {
   el.style.background = bg;
   el.style.color = txtColor;
 }
+function currentProviderLabel() {
+  var p = PROVIDER_REGISTRY.find(function(r) { return r.id === getProvider(); });
+  return p ? p.name : getProvider();
+}
+function maskSecrets(text) {
+  var t = String(text || "");
+  var key = getApiKey();
+  if (key && key.length >= 8) t = t.split(key).join("••••••");
+  t = t.replace(/\b(?:sk|gsk|AIza)[-_A-Za-z0-9]{8,}/g, "••••••");
+  t = t.replace(/\b[A-Za-z0-9]{24,}\.[A-Za-z0-9]{8,}\b/g, "••••••");
+  t = t.replace(/Bearer\s+[A-Za-z0-9._\-]{8,}/gi, "Bearer ••••••");
+  return t;
+}
+function describeApiError(err) {
+  var msg = String((err && err.message) || err || "");
+  var status = err && err.status;
+  var code = err && err.code;
+  var isCustom = getProvider() === "custom";
+  var d = { title: "请求失败", message: "", solution: "", raw: "", code: "", action: null };
+  var openSettings = { label: "打开设置", fn: function() { askForApiKey({ expandAdvanced: true }); } };
+  var resetKey = { label: "重新设置", fn: function() { askForApiKey(); } };
 
-/* ===== #1 callAIAPI：用户自填代理优先，否则直连（A1：已去掉 defaultProxy 分支） ===== */
-async function callAIAPI(apiKey, messages) {
+  if (code === "timeout") {
+    d.title = "等待超时";
+    d.message = "服务商 40 秒内没有回应。";
+    d.solution = "检查网络后重试；免费模型在高峰期可能会很慢。";
+  } else if (code === "badkey") {
+    d.title = "密钥格式不对";
+    d.message = "密钥里含有无法识别的字符，比如中文或全角符号。";
+    d.solution = "重新复制密钥，注意不要带多余的空格或文字。";
+    d.action = resetKey;
+  } else if (code === "network" || /Failed to fetch|NetworkError|Load failed/i.test(msg)) {
+    d.title = "连接失败";
+    d.message = "没能连上服务商。";
+    d.solution = "先检查网络。网络正常的话，可能是该服务商不允许网页直接访问，可以在「高级设置」里填代理地址。";
+    d.action = { label: "设置代理", fn: function() { askForApiKey({ expandAdvanced: true }); } };
+    d.raw = msg;
+  } else if (code === "format" || msg === "API 返回数据异常") {
+    d.title = "回复无法解析";
+    d.message = "服务商返回了无法解析的内容。";
+    d.solution = "确认服务商和模型名称是否正确。";
+    d.action = openSettings;
+  } else if (status) {
+    d.code = String(status);
+    d.raw = (err && err.raw) || msg;
+    if (status === 401) {
+      d.title = "密钥无效";
+      d.message = "服务商没有认出这把密钥。";
+      d.solution = "检查密钥是否复制完整，或重新设置。";
+      d.action = resetKey;
+    } else if (status === 402) {
+      d.title = "额度不足";
+      d.message = "账户余额不足，或免费额度已经用完。";
+      d.solution = "到服务商网站查看额度，或换一个服务商。";
+      d.action = openSettings;
+    } else if (status === 403) {
+      d.title = "服务商拒绝了这次请求";
+      d.message = "可能是地区限制、额度限制，或触发了安全策略。";
+      d.solution = "展开原报错看看具体原因，或换一个服务商、模型试试。";
+      d.action = openSettings;
+    } else if (status === 404) {
+      d.title = isCustom ? "地址或模型有误" : "模型不可用";
+      d.message = isCustom ? "服务商没有找到这个地址或模型。" : "这个模型可能已经下线，或名称有误。";
+      d.solution = isCustom ? "检查 API 地址和模型名称是否正确。" : "在「高级设置」里点「获取列表」，换一个模型。";
+      d.action = openSettings;
+    } else if (status === 429) {
+      d.title = "请求太频繁";
+      d.message = "服务商暂时限制了请求次数（免费模型通常有每分钟上限）。";
+      d.solution = "等一会儿再试，或换一个服务商。";
+    } else if (status >= 500) {
+      d.title = "服务商暂时出错";
+      d.message = "服务商那边出了问题。";
+      d.solution = "稍后再试。";
+    } else if (status === 400) {
+      d.title = "请求被拒绝";
+      d.message = "服务商认为这次请求有问题，常见原因是模型名称不对。";
+      d.solution = "检查模型名称，或换一个服务商。";
+      d.action = openSettings;
+    } else {
+      d.message = "服务商返回了错误（" + status + "）。";
+      d.solution = "稍后重试；一直这样的话，可以展开原报错并复制反馈。";
+    }
+  } else if (msg.indexOf("请先在") === 0) {
+    d.title = "还没设置完";
+    d.message = msg;
+    d.action = openSettings;
+  } else {
+    d.message = msg && msg.length <= 80 ? msg : "出现了未知错误。";
+    d.solution = "稍后重试；一直这样的话，可以复制原报错反馈。";
+    d.raw = msg.length > 80 ? msg : "";
+  }
+  return d;
+}
+function showApiError(err) {
+  var d = describeApiError(err);
+  var rawText = maskSecrets(d.raw);
+  var body = '<div class="err-dialog"><div class="err-msg">' + escapeHTML(d.message) + '</div>' +
+    (d.solution ? '<div class="err-solution">怎么办：' + escapeHTML(d.solution) + '</div>' : '') +
+    (rawText
+      ? '<details class="err-raw"><summary>查看原报错</summary>' +
+          (d.code ? '<div class="err-code">错误码：' + escapeHTML(d.code) + '</div>' : '') +
+          '<pre>' + escapeHTML(rawText) + '</pre>' +
+          '<button type="button" class="err-copy" id="errRawCopy">复制</button></details>'
+      : '') +
+    '</div>';
+  var footer = d.action
+    ? '<button class="btn-secondary" id="errClose">关闭</button><button class="btn-primary" id="errAction">' + escapeHTML(d.action.label) + '</button>'
+    : '<button class="btn-primary" id="errClose" style="flex:1;">我知道了</button>';
+  openModal(d.title, body, footer);
+  document.getElementById("errClose").addEventListener("click", closeModal);
+  if (d.action) {
+    document.getElementById("errAction").addEventListener("click", function() {
+      closeModal();
+      setTimeout(d.action.fn, 100);
+    });
+  }
+  var copyBtn = document.getElementById("errRawCopy");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function() {
+      var cfg = getProviderConfig();
+      copyText("服务商：" + currentProviderLabel() + "\n模型：" + (cfg.model || "") +
+        (d.code ? "\n错误码：" + d.code : "") + "\n原报错：" + rawText);
+    });
+  }
+}
+
+function getHost(u) { try { return new URL(u).host; } catch (e) { return ""; } }
+function withProxy(url) {
+  var userProxy = getProxyUrl();
+  if (!userProxy) return url;
+  return userProxy.replace(/\/+$/, "") + "/?url=" + encodeURIComponent(url);
+}
+function getRequestParams(cfg) {
+  var pid = getProvider();
+  var entry = PROVIDER_REGISTRY.find(function(r) { return r.id === pid && r.id !== "custom"; });
+  if (!entry) {
+    var host = getHost(cfg.url);
+    entry = PROVIDER_REGISTRY.find(function(r) { return r.url && getHost(r.url) === host; });
+  }
+  var p = (entry && entry.params) || {};
+  var extra = {};
+  if (p.extra) {
+    Object.keys(p.extra).forEach(function(k) { extra[k] = p.extra[k]; });
+  }
+  return { maxTokens: p.maxTokens || 300, extra: extra };
+}
+function deriveModelsUrl(chatUrl) {
+  var m = String(chatUrl || "").match(/^(.*)\/chat\/completions\/?(\?.*)?$/i);
+  return m ? m[1] + "/models" : "";
+}
+async function fetchModelList(chatUrl, apiKey, proxyUrl) {
+  var url = deriveModelsUrl(chatUrl);
+  if (!url) throw new Error("该地址暂不支持获取模型列表");
+  var headers = { "Authorization": "Bearer " + apiKey };
+  if (getHost(url) === "api.anthropic.com") {
+    headers["x-api-key"] = apiKey;
+    headers["anthropic-version"] = "2023-06-01";
+    headers["anthropic-dangerous-direct-browser-access"] = "true";
+  }
+  var finalUrl = proxyUrl ? proxyUrl.replace(/\/+$/, "") + "/?url=" + encodeURIComponent(url) : url;
+  var controller = new AbortController();
+  var timer = setTimeout(function() { controller.abort(); }, 15000);
+  try {
+    var resp = await fetch(finalUrl, { method: "GET", headers: headers, signal: controller.signal });
+    if (!resp.ok) throw new Error("服务商返回 " + resp.status);
+    var data = await resp.json();
+    var arr = (data && (data.data || data.models)) || [];
+    var ids = [];
+    for (var i = 0; i < arr.length; i++) {
+      var it = arr[i];
+      var id = typeof it === "string" ? it : (it && (it.id || it.name));
+      if (id) ids.push(String(id).replace(/^models\//, ""));
+    }
+    return ids;
+  } catch (e) {
+    if (e && e.name === "AbortError") throw new Error("获取超时");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+function pickPreferredModel(entry, list) {
+  var prefer = (entry && entry.modelPrefer) || [];
+  for (var i = 0; i < prefer.length; i++) {
+    var pf = prefer[i];
+    if (typeof pf === "string") {
+      if (list.indexOf(pf) >= 0) return pf;
+    } else {
+      var hits = list.filter(function(id) { return pf.test(id); }).sort();
+      if (hits.length) return hits[hits.length - 1];
+    }
+  }
+  return "";
+}
+async function tryAutoSwitchModel(cfg, apiKey) {
+  try {
+    var pid = getProvider();
+    var entry = PROVIDER_REGISTRY.find(function(r) { return r.id === pid && r.id !== "custom"; });
+    if (!entry || !entry.modelPrefer) return "";
+    var list = await fetchModelList(cfg.url, apiKey, getProxyUrl());
+    var picked = pickPreferredModel(entry, list);
+    if (!picked || picked === cfg.model) return "";
+    setModelOverride(pid, picked);
+    return picked;
+  } catch (e) {
+    return "";
+  }
+}
+
+async function callAIAPI(apiKey, messages, ctl) {
   var cfg = getProviderConfig();
   if (!cfg.url || !cfg.model) {
     throw new Error('请先在「设置 AI 服务」里选择服务商并填写信息');
   }
-  var opts = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + apiKey,
-      "HTTP-Referer": "https://momotalk.app",
-      "X-Title": "MomoTalk"
-    },
-    body: JSON.stringify({ model: cfg.model, messages: messages, max_tokens: 300, temperature: 0.8 })
+  var headers = {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer " + apiKey
   };
+  if (getProvider() === "openrouter" || cfg.url.indexOf("openrouter.ai") !== -1) {
+    headers["HTTP-Referer"] = "https://momotalk.app";
+    headers["X-Title"] = "MomoTalk";
+  }
+  if (getProvider() === "anthropic") {
+    headers["anthropic-dangerous-direct-browser-access"] = "true";
+  }
+  var params = getRequestParams(cfg);
+  var bodyObj = { model: cfg.model, messages: messages, max_tokens: params.maxTokens, temperature: 0.8 };
+  var extraKeys = Object.keys(params.extra);
+  extraKeys.forEach(function(k) { bodyObj[k] = params.extra[k]; });
+  var opts = { method: "POST", headers: headers, body: JSON.stringify(bodyObj) };
+
+  function checkStopped() {
+    if (ctl && ctl.stopped) throw new Error("__STOPPED__");
+  }
   function fetchWithTimeout() {
+    checkStopped();
     var controller = new AbortController();
-    var timer = setTimeout(function() { controller.abort(); }, 60000);
-    var userProxy = getProxyUrl();
-    var finalUrl = cfg.url;
-    if (userProxy) {
-      userProxy = userProxy.replace(/\/+$/, '');
-      finalUrl = userProxy + "/?url=" + encodeURIComponent(cfg.url);
-    }
-    return fetch(finalUrl, Object.assign({}, opts, { signal: controller.signal }))
+    if (ctl) ctl.current = controller;
+    var timer = setTimeout(function() { controller.abort(); }, 40000);
+    return fetch(withProxy(cfg.url), Object.assign({}, opts, { signal: controller.signal }))
       .then(function(resp) { clearTimeout(timer); return resp; })
       .catch(function(err) {
         clearTimeout(timer);
-        if (err && err.name === "AbortError") throw new Error("请求超时（60秒无响应），请稍后重试");
+        if (err && err.name === "AbortError") {
+          if (ctl && ctl.stopped) throw new Error("__STOPPED__");
+          var te = new Error("请求超时（40秒无响应），请检查网络或稍后重试");
+          te.code = "timeout";
+          throw te;
+        }
+        if (err && typeof err === "object" && !err.code) {
+          err.code = /ISO-8859-1|Invalid value|not a valid HTTP header/i.test(String(err.message)) ? "badkey" : "network";
+        }
         throw err;
       });
   }
+
   var resp = await fetchWithTimeout();
+  if (resp.status === 400 && extraKeys.length) {
+    extraKeys.forEach(function(k) { delete bodyObj[k]; });
+    opts.body = JSON.stringify(bodyObj);
+    resp = await fetchWithTimeout();
+  }
+  if (resp.status === 404) {
+    var picked = await tryAutoSwitchModel(cfg, apiKey);
+    if (picked) {
+      showToast("模型「" + cfg.model + "」不可用，已自动切换到「" + picked + "」");
+      bodyObj.model = picked;
+      opts.body = JSON.stringify(bodyObj);
+      resp = await fetchWithTimeout();
+    }
+  }
   var retryCount = 0;
   while (resp.status === 429 && retryCount < 3) {
+    showToast("请求频繁，正在重试 " + (retryCount + 1) + "/3");
     await sleep(2000 + retryCount * 1000);
+    checkStopped();
     resp = await fetchWithTimeout();
     retryCount++;
   }
   if (!resp.ok) {
+    var rawText = "";
+    try { rawText = await resp.text(); } catch (e1) {}
     var errText = 'API 请求失败（' + resp.status + '）';
     try {
-      var errData = await resp.json();
+      var errData = JSON.parse(rawText);
       if (errData.error && errData.error.message) errText = errData.error.message;
       else if (errData.error && typeof errData.error === "string") errText = errData.error;
-    } catch(e2) {}
-    if (resp.status === 401) errText = 'API Key 无效，请到「更多」页面重新设置';
-    if (resp.status === 429) errText = '请求太频繁，请稍后再试';
-    throw new Error(errText);
+      else if (errData.message) errText = errData.message;
+    } catch (e2) {}
+    if (resp.status === 402) errText = '账户余额不足（或免费额度耗尽），请稍后再试';
+    if (resp.status === 403) errText = '请求被服务商拒绝（可能是触发了安全策略或额度限制）';
+    if (resp.status === 429) errText = '请求太频繁（免费模型通常限制 20次/分钟），请稍后再试';
+    var he = new Error(errText);
+    he.code = "http";
+    he.status = resp.status;
+    he.raw = rawText || errText;
+    throw he;
   }
-  var data = await resp.json();
-  if (data.choices && data.choices[0] && data.choices[0].message) return data.choices[0].message.content;
-  throw new Error('API 返回数据异常');
+  var data = null;
+  try { data = await resp.json(); } catch (e3) {}
+  if (data && data.choices && data.choices[0] && data.choices[0].message) {
+    var content = data.choices[0].message.content;
+    return typeof content === "string" ? content : "";
+  }
+  var fe = new Error('API 返回数据异常');
+  fe.code = "format";
+  throw fe;
 }
 function shouldSummarize(charId) {
   var mem = DB.memories[charId] || { upToIndex: 0 };
@@ -2458,17 +3049,16 @@ async function summarizeHistory(charId) {
   }
 }
 
-/* ===== #2 时间硬约束 + #5 注入 SYSTEM_RULES ===== */
 async function fetchAIReply(characterId, userMessage, options) {
   options = options || {};
   var excludeLast = options.excludeLast !== false;
   var apiKey = getApiKey();
   if (!apiKey) {
     askForApiKey();
-    return { text: FALLBACK_REPLY, delta: 0, skipped: true };
+    return { text: "", delta: 0, skipped: true };
   }
   var char = getChar(characterId);
-  if (!char) { showErrorModal('找不到该角色'); return { text: FALLBACK_REPLY, delta: 0, skipped: true }; }
+  if (!char) { showErrorModal('找不到该角色'); return { text: "", delta: 0, skipped: true }; }
   var aff = getAffinity(characterId);
 
   var systemPrompt = SYSTEM_RULES + "\n\n" +
@@ -2514,25 +3104,35 @@ async function fetchAIReply(characterId, userMessage, options) {
     }
   }
   messages.push({ role: "user", content: userMessage });
+  var ctl = { stopped: false, current: null };
+  replyControllers[characterId] = ctl;
+  var stoppedResult = { text: "", delta: 0, skipped: true, stopped: true };
   var retryCount = 0;
   try {
-    var reply = await callAIAPI(apiKey, messages);
+    var reply = await callAIAPI(apiKey, messages, ctl);
+    if (ctl.stopped) return stoppedResult;
     var parsed = parseAIReply(reply);
     if (!hasDialogueText(parsed.text) && retryCount < 1) {
       retryCount++;
       messages.push({ role: "assistant", content: reply });
       messages.push({ role: "user", content: "（你刚才只发了动作没有说话，请重新用一句简短的台词回应老师，可以带上动作，最后仍要带好感度标签）" });
       try {
-        reply = await callAIAPI(apiKey, messages);
+        reply = await callAIAPI(apiKey, messages, ctl);
         parsed = parseAIReply(reply);
-      } catch(e2) {}
+      } catch (e2) {
+        if (ctl.stopped || (e2 && e2.message === "__STOPPED__")) throw e2;
+      }
+      if (ctl.stopped) return stoppedResult;
       if (!hasDialogueText(parsed.text)) parsed.text = "……老师？" + parsed.text;
     }
     if (parsed.delta === null) parsed.delta = keywordFallbackDelta(userMessage);
     return parsed;
   } catch (e) {
-    showErrorModal(e.message || '网络连接失败，请检查网络');
-    return { text: FALLBACK_REPLY, delta: 0, skipped: true };
+    if (ctl.stopped || (e && e.message === "__STOPPED__")) return stoppedResult;
+    showApiError(e);
+    return { text: "", delta: 0, skipped: true };
+  } finally {
+    if (replyControllers[characterId] === ctl) delete replyControllers[characterId];
   }
 }
 var CROP_VIEW = 240;
@@ -2641,7 +3241,7 @@ function handleAvatarFileSelected(file) {
   if (!file.type || file.type.indexOf("image") !== 0) { showToast("请选择图片文件"); return; }
   var loadSource;
   if (typeof createImageBitmap === "function") {
-    loadSource = createImageBitmap(file, { imageOrientation: "from-image" });
+    loadSource = createImageBitmap(file, { imageOrientation: "from-image", resizeWidth: 800, resizeQuality: "high" });
   } else {
     loadSource = new Promise(function(resolve, reject) {
       var reader = new FileReader();
@@ -2802,6 +3402,38 @@ function switchPage(name, direction) {
   if (name === 'more') renderCharProfileList();
   if (name === 'messages') renderConvList(document.getElementById("convSearchInput").value);
 }
+
+var undoDeleteTimer = null;
+var undoDeleteData = null;
+var undoDeleteEl = null;
+function clearUndoDelete() {
+  if (undoDeleteTimer) { clearTimeout(undoDeleteTimer); undoDeleteTimer = null; }
+  if (undoDeleteEl && undoDeleteEl.parentNode) undoDeleteEl.parentNode.removeChild(undoDeleteEl);
+  undoDeleteEl = null;
+  undoDeleteData = null;
+}
+function showUndoDeleteToast(charName, undoCallback) {
+  clearUndoDelete();
+  var el = document.createElement("div");
+  el.style.cssText = "position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:10px 16px;border-radius:22px;font-size:14px;z-index:9999;display:flex;align-items:center;gap:14px;box-shadow:0 4px 16px rgba(0,0,0,0.25);max-width:92%;";
+ var label = document.createElement("span");
+label.style.cssText = "flex:1; min-width:0; white-space:normal; word-break:break-word; line-height:1.4;";
+label.textContent = "已删除「" + charName + "」";
+  var btn = document.createElement("button");
+  btn.textContent = "撤销";
+  btn.style.cssText = "background:none;border:none;color:#ffb3c8;font-size:14px;font-weight:600;padding:4px 8px;flex-shrink:0;cursor:pointer;";
+  btn.addEventListener("click", function() {
+    if (undoDeleteData && undoDeleteData.undo) undoDeleteData.undo();
+    clearUndoDelete();
+  });
+  el.appendChild(label);
+  el.appendChild(btn);
+  document.body.appendChild(el);
+  undoDeleteEl = el;
+  undoDeleteData = { undo: undoCallback };
+  undoDeleteTimer = setTimeout(function() { clearUndoDelete(); }, 5000);
+}
+
 function renderConvList(filter) {
   var list = document.getElementById("convList");
   filter = (filter || "").trim().toLowerCase();
@@ -2858,7 +3490,6 @@ function renderConvList(filter) {
     var isDesktop = window.matchMedia('(pointer: fine)').matches;
     var clickTimer = null;
 
-    // 单击/双击逻辑
     item.addEventListener('click', function(e) {
       if (Date.now() < slideState.suppressClickUntil) return;
       if (isDesktop) {
@@ -2881,7 +3512,6 @@ function renderConvList(filter) {
       showConvActionMenu(id, e.clientX, e.clientY);
     });
 
-    // 极速防误触点击封装
     function bindActionButton(el, callback) {
       var startX = 0, startY = 0;
       var isTouch = false;
@@ -2905,8 +3535,20 @@ function renderConvList(filter) {
     }
 
     bindActionButton(wrap.querySelector('.action-delete'), function() {
-      showConfirm("删除会话", "确定删除和「" + escapeHTML(getChar(id).name) + "」的全部聊天记录吗？好感度也会一起删除。", function() {
-        deletedBackups[id] = { msgs: DB.msgs[id], affinity: DB.affinity[id], char: JSON.parse(JSON.stringify(getChar(id))) };
+      var char = getChar(id);
+      if (!char) return;
+      showConfirm("删除会话", "确定删除和「" + escapeHTML(char.name) + "」的全部聊天记录吗？好感度也会一起删除。", function() {
+        var backupMsgs = JSON.parse(JSON.stringify(DB.msgs[id] || []));
+        var backupAffinity = DB.affinity[id];
+        var backupMemories = DB.memories[id] ? JSON.parse(JSON.stringify(DB.memories[id])) : undefined;
+        var wasPinned = isPinned(id);
+        deletedBackups[id] = { 
+          msgs: DB.msgs[id], 
+          affinity: DB.affinity[id], 
+          char: JSON.parse(JSON.stringify(char)),
+          memories: backupMemories,
+          pinned: wasPinned
+        };
         saveDeletedBackups();
         delete DB.msgs[id];
         delete DB.affinity[id];
@@ -2918,7 +3560,17 @@ function renderConvList(filter) {
         if (pIdx >= 0) { DB.pinned.splice(pIdx, 1); savePinned(); }
         saveAffinity();
         renderConvList(document.getElementById("convSearchInput").value);
-        showToast("已删除，可在「更多」页面恢复");
+        showUndoDeleteToast(char.name, function() {
+          delete deletedBackups[id];
+          saveDeletedBackups();
+          DB.msgs[id] = backupMsgs;
+          saveMsgs(id);
+          if (backupAffinity !== undefined) { DB.affinity[id] = backupAffinity; saveAffinity(); }
+          if (backupMemories) { DB.memories[id] = backupMemories; saveMemories(); }
+          if (wasPinned && DB.pinned.indexOf(id) < 0) { DB.pinned.push(id); savePinned(); }
+          renderConvList(document.getElementById("convSearchInput").value);
+          showToast("已恢复会话");
+        });
       });
     });
 
@@ -2978,7 +3630,17 @@ function showConvActionMenu(id, x, y) {
   bindActionButton(document.getElementById('convMenuDelete'), function() {
     hideMsgActionMenu();
     showConfirm("删除会话", "确定删除和「" + escapeHTML(char.name) + "」的全部聊天记录吗？好感度也会一起删除。", function() {
-      deletedBackups[id] = { msgs: DB.msgs[id], affinity: DB.affinity[id], char: JSON.parse(JSON.stringify(getChar(id))) };
+      var backupMsgs = JSON.parse(JSON.stringify(DB.msgs[id] || []));
+      var backupAffinity = DB.affinity[id];
+      var backupMemories = DB.memories[id] ? JSON.parse(JSON.stringify(DB.memories[id])) : undefined;
+      var wasPinned = isPinned(id);
+      deletedBackups[id] = { 
+        msgs: DB.msgs[id], 
+        affinity: DB.affinity[id], 
+        char: JSON.parse(JSON.stringify(char)),
+        memories: backupMemories,
+        pinned: wasPinned
+      };
       saveDeletedBackups();
       delete DB.msgs[id];
       delete DB.affinity[id];
@@ -2990,7 +3652,17 @@ function showConvActionMenu(id, x, y) {
       if (pIdx >= 0) { DB.pinned.splice(pIdx, 1); savePinned(); }
       saveAffinity();
       renderConvList(document.getElementById("convSearchInput").value);
-      showToast("已删除，可在「更多」页面恢复");
+      showUndoDeleteToast(char.name, function() {
+        delete deletedBackups[id];
+        saveDeletedBackups();
+        DB.msgs[id] = backupMsgs;
+        saveMsgs(id);
+        if (backupAffinity !== undefined) { DB.affinity[id] = backupAffinity; saveAffinity(); }
+        if (backupMemories) { DB.memories[id] = backupMemories; saveMemories(); }
+        if (wasPinned && DB.pinned.indexOf(id) < 0) { DB.pinned.push(id); savePinned(); }
+        renderConvList(document.getElementById("convSearchInput").value);
+        showToast("已恢复会话");
+      });
     });
   });
 }
@@ -3067,6 +3739,8 @@ function restoreDeletedConversation(id) {
     }
     if (bk.msgs) { DB.msgs[id] = bk.msgs; saveMsgs(id); }
     if (bk.affinity !== undefined) { DB.affinity[id] = bk.affinity; saveAffinity(); }
+    if (bk.memories) { DB.memories[id] = bk.memories; saveMemories(); }
+    if (bk.pinned && DB.pinned.indexOf(id) < 0) { DB.pinned.push(id); savePinned(); }
     delete deletedBackups[id];
     saveDeletedBackups();
     closeModal();
@@ -3092,7 +3766,6 @@ function openChat(id) {
   switchPage("chat", "forward");
 }
 
-/* ===== 模块二：历史消息搜索 ===== */
 function openSearchHistoryModal() {
   var body = '<div class="field">' +
     '<input id="historySearchInput" placeholder="输入关键字搜索聊天记录">' +
@@ -3123,9 +3796,11 @@ function openSearchHistoryModal() {
     }
     
     var html = '';
+    // 修复：转义正则特殊字符，防止用户输入 ( 或 [ 导致崩溃
+    var safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     matched.forEach(function(m) {
       var roleName = m.role === 'teacher' ? '老师' : getChar(currentChatId).name;
-      var text = escapeHTML(m.text).replace(new RegExp(keyword, 'gi'), function(match) {
+      var text = escapeHTML(m.text).replace(new RegExp(safeKeyword, 'gi'), function(match) {
         return '<span style="color:var(--accent);font-weight:bold;">' + match + '</span>';
       });
       html += '<div style="padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;">' +
@@ -3137,7 +3812,6 @@ function openSearchHistoryModal() {
   });
 }
 
-/* ===== #B1 renderChat 滚动锚点：翻历史时来新消息不再跳顶 ===== */
 function renderChat(animateLast) {
   var body = document.getElementById("chatBody");
   var msgs = getMsgs(currentChatId);
@@ -3184,7 +3858,6 @@ function renderChat(animateLast) {
     body.scrollTop = Math.max(0, Math.min(body.scrollHeight, newScrollTop));
   }
 
-  // 修复：手动检查回到底部按钮的状态
   var chatBody = document.getElementById("chatBody");
   if (chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight < 200) {
     var scrollBtn = document.getElementById("scrollBottomBtn");
@@ -3478,10 +4151,44 @@ function updateSendingState() {
   var sendBtn = document.getElementById('sendBtn');
   if (isSending()) {
     bar.classList.add('sending');
-    if (sendBtn) sendBtn.disabled = true;
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.classList.add('is-stop');
+      sendBtn.setAttribute('aria-label', '停止');
+    }
   } else {
     bar.classList.remove('sending');
-    if (sendBtn) sendBtn.disabled = false;
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.classList.remove('is-stop');
+      sendBtn.setAttribute('aria-label', '发送');
+    }
+  }
+}
+function stopGenerating() {
+  var chatId = currentChatId;
+  if (!chatId || !sendingStatus[chatId]) return;
+  var ctl = replyControllers[chatId];
+  if (ctl) {
+    ctl.stopped = true;
+    if (ctl.current) { try { ctl.current.abort(); } catch (e) {} }
+  }
+  showToast("已停止");
+}
+var connectionChecking = false;
+async function runConnectionCheck() {
+  if (connectionChecking) return;
+  var key = getApiKey();
+  var cfg = getProviderConfig();
+  if (!key || !cfg.url || !cfg.model) return;
+  connectionChecking = true;
+  try {
+    await callAIAPI(key, [{ role: "user", content: "请只回复一个字：好" }]);
+    showToast("✓ 连接成功，可以开始聊天了");
+  } catch (e) {
+    showApiError(e);
+  } finally {
+    connectionChecking = false;
   }
 }
 async function sendMessage() {
@@ -3499,6 +4206,8 @@ async function sendMessage() {
   input.value = "";
   input.style.height = "auto";
   var msgs = getMsgs(currentChatId);
+  var isFirstConversation = msgs.length === 0;
+  var oldLevel = getAffinityLevel(getAffinity(currentChatId));
   msgs.push({ role: "teacher", text: text, ts: Date.now() });
   saveMsgs(currentChatId);
   renderChat(true);
@@ -3527,21 +4236,30 @@ async function sendMessage() {
     return;
   }
   pendingBounce[requestChatId] = true;
-  msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: result.delta || 0 });
+  var finalDelta = result.delta || 0;
+  if (isFirstConversation) finalDelta += 5;
+  msgs.push({ role: "student", text: result.text, ts: Date.now(), affDelta: finalDelta });
   saveMsgs(requestChatId);
-  setAffinity(requestChatId, getAffinity(requestChatId) + (result.delta || 0));
+  setAffinity(requestChatId, getAffinity(requestChatId) + finalDelta);
   sendingStatus[requestChatId] = false;
+  var newLevel = getAffinityLevel(getAffinity(requestChatId));
   if (requestChatId === currentChatId) {
     updateSendingState();
     renderChat(true);
     updateAffinityUI(requestChatId);
-    showAffinityToast(result.delta);
+    showAffinityToast(finalDelta);
     renderConvList(document.getElementById("convSearchInput").value);
+    if (newLevel.lv > oldLevel.lv) {
+      setTimeout(function() {
+        showToast("关系升级为「" + newLevel.name + "」");
+      }, 900);
+    }
   }
   if (shouldSummarize(requestChatId)) {
     summarizeHistory(requestChatId);
   }
 }
+
 function openModal(title, bodyHTML, footerHTML) {
   var modalEl = document.querySelector("#modalMask .modal");
   if (modalEl) {
@@ -3552,6 +4270,39 @@ function openModal(title, bodyHTML, footerHTML) {
   document.getElementById("modalBody").innerHTML = bodyHTML;
   document.getElementById("modalFooter").innerHTML = footerHTML || "";
   document.getElementById("modalMask").classList.add("show");
+  setupModalKeyHandler();
+  setTimeout(function() {
+    var firstField = document.querySelector("#modalBody input:not([type=hidden]), #modalBody textarea");
+    if (firstField && !firstField.disabled && !firstField.readOnly) {
+      try { firstField.focus(); } catch(e) {}
+    }
+  }, 50);
+}
+function setupModalKeyHandler() {
+  var modalEl = document.querySelector("#modalMask .modal");
+  if (!modalEl) return;
+  if (modalEl.__momoKeyHandlerInstalled) return;
+  modalEl.__momoKeyHandlerInstalled = true;
+  modalEl.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+      return;
+    }
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+      var target = e.target;
+      if (!target) return;
+      if (target.tagName === "TEXTAREA") return;
+      if (target.tagName === "INPUT") {
+        var type = (target.type || "").toLowerCase();
+        if (type === "file") return;
+        e.preventDefault();
+        var primaryBtn = modalEl.querySelector(".modal-footer .btn-primary");
+        if (primaryBtn) primaryBtn.click();
+      }
+    }
+  });
 }
 function closeModal() { 
   document.getElementById("modalMask").classList.remove("show");
@@ -3673,6 +4424,7 @@ function openCharEditor(id) {
 function exportData() {
   var data = {
     version: window.getMomoTalkVersionNum ? window.getMomoTalkVersionNum("beta") : "2.2.0",
+    schemaVersion: 1,
     chars: DB.chars,
     msgs: DB.msgs,
     affinity: DB.affinity,
@@ -3793,7 +4545,6 @@ function normalizeImportData(data) {
   }
   return { chars: chars, msgs: msgs, affinity: affinity, pinned: pinned, deleted: deleted, memories: memories };
 }
-
 function importData(file) {
   var reader = new FileReader();
   reader.onload = function(e) {
@@ -3801,21 +4552,56 @@ function importData(file) {
       var raw = JSON.parse(e.target.result);
       var data = normalizeImportData(raw);
       showConfirm("导入数据", "将覆盖当前全部数据（角色、聊天、好感度），确定吗？", function() {
-        DB.chars = data.chars;
-        DB.msgs = data.msgs;
-        DB.affinity = data.affinity;
-        DB.pinned = data.pinned;
-        DB.memories = data.memories || {};
-        deletedBackups = data.deleted || {};
-        memoriesGeneration = {};
-        DB.chars.forEach(function(c) {
-          memoriesGeneration[c.id] = (memoriesGeneration[c.id] || 0) + 1;
-          bumpMsgGen(c.id);
-        });
-        saveChars(); saveAffinity(); savePinned(); saveDeletedBackups(); saveMemories();
-        DB.chars.forEach(function(c) {
-          saveMsgs(c.id);
-        });
+        var snapshot = {
+          chars: JSON.parse(JSON.stringify(DB.chars)),
+          msgs: JSON.parse(JSON.stringify(DB.msgs)),
+          affinity: JSON.parse(JSON.stringify(DB.affinity)),
+          pinned: DB.pinned.slice(),
+          memories: JSON.parse(JSON.stringify(DB.memories)),
+          deleted: JSON.parse(JSON.stringify(deletedBackups))
+        };
+        var ok = true;
+        var failMsg = "";
+        try {
+          DB.chars = data.chars;
+          DB.msgs = data.msgs;
+          DB.affinity = data.affinity;
+          DB.pinned = data.pinned;
+          DB.memories = data.memories || {};
+          deletedBackups = data.deleted || {};
+          memoriesGeneration = {};
+          DB.chars.forEach(function(c) {
+            memoriesGeneration[c.id] = (memoriesGeneration[c.id] || 0) + 1;
+            bumpMsgGen(c.id);
+          });
+          if (!saveChars()) { ok = false; failMsg = "存储空间不足"; }
+          if (ok && !saveAffinity()) { ok = false; failMsg = "存储空间不足"; }
+          if (ok && !savePinned()) { ok = false; failMsg = "存储空间不足"; }
+          if (ok) {
+            for (var ci = 0; ci < DB.chars.length; ci++) {
+              if (!saveMsgs(DB.chars[ci].id)) { ok = false; failMsg = "存储空间不足"; break; }
+            }
+          }
+          if (ok) {
+            try { saveDeletedBackups(); } catch(ex) { ok = false; failMsg = "存储空间不足"; }
+          }
+          if (ok && !saveMemories()) { ok = false; failMsg = "存储空间不足"; }
+        } catch (ex) {
+          ok = false;
+          failMsg = ex.message || "导入异常";
+        }
+        if (!ok) {
+          DB.chars = snapshot.chars;
+          DB.msgs = snapshot.msgs;
+          DB.affinity = snapshot.affinity;
+          DB.pinned = snapshot.pinned;
+          DB.memories = snapshot.memories;
+          deletedBackups = snapshot.deleted;
+          saveChars(); saveAffinity(); savePinned(); saveDeletedBackups(); saveMemories();
+          DB.chars.forEach(function(c) { saveMsgs(c.id); });
+          showToast("导入失败：" + failMsg + "，数据未变更");
+          return;
+        }
         showToast("导入成功");
         renderConvList("");
         renderCharProfileList();
@@ -3869,7 +4655,6 @@ function bindThemeListener() {
 }
 
 function bindGlobalEvents() {
-  /* ===== 模块二：智能判断环境，电脑端才显示快捷键 ===== */
   var isDesktop = window.matchMedia('(pointer: fine)').matches && window.matchMedia('(hover: hover)').matches;
   if (isDesktop) {
     document.getElementById("msgInput").placeholder = "发送消息... (Enter发送 / Shift+Enter换行)";
@@ -3886,14 +4671,14 @@ function bindGlobalEvents() {
   document.getElementById("chatBackBtn").addEventListener("click", function() {
     switchPage("messages", "back");
   });
-  /* ===== 模块二：监听点击名字打开历史搜索 ===== */
   document.getElementById("chatName").addEventListener("click", function() {
     openSearchHistoryModal();
   });
   
-  document.getElementById("sendBtn").addEventListener("click", sendMessage);
+  document.getElementById("sendBtn").addEventListener("click", function() {
+    if (isSending()) stopGenerating(); else sendMessage();
+  });
   var msgInput = document.getElementById("msgInput");
-  /* ===== 安全加固：Safari IME 确认词的 Enter 不发送（来源：MDN CompositionEvent） ===== */
   var lastCompositionEnd = 0;
   msgInput.addEventListener("compositionend", function() {
     lastCompositionEnd = performance.now();
@@ -3929,7 +4714,6 @@ function bindGlobalEvents() {
     if (e.target === this) closeModal();
   });
   
-  /* ===== 模块四：滑动到底部按钮逻辑 ===== */
   var chatBody = document.getElementById("chatBody");
   var scrollBottomBtn = document.getElementById("scrollBottomBtn");
   chatBody.addEventListener("scroll", function() {
@@ -3951,14 +4735,13 @@ function bindGlobalEvents() {
     if (e.target && e.target.closest && e.target.closest('.msg-action-menu')) return;
     hideMsgActionMenu();
   }, { passive: true });
-  // 电脑端点击空白处关闭菜单
-document.addEventListener("mousedown", function(e) {
-  if (!menuVisible()) return;
-  if (Date.now() < menuSuppressUntil) return;
-  if (e.target && e.target.closest && e.target.closest('.msg-action-menu')) return;
-  if (e.target && e.target.closest && e.target.closest('.conv-item')) return; // 防止点会话时误关
-  hideMsgActionMenu();
-});
+  document.addEventListener("mousedown", function(e) {
+    if (!menuVisible()) return;
+    if (Date.now() < menuSuppressUntil) return;
+    if (e.target && e.target.closest && e.target.closest('.msg-action-menu')) return;
+    if (e.target && e.target.closest && e.target.closest('.conv-item')) return;
+    hideMsgActionMenu();
+  });
   document.getElementById("btnNewChar").addEventListener("click", function() { openCharEditor(null); });
   document.getElementById("btnGlassToggle").addEventListener("click", toggleGlass);
   document.getElementById("btnExport").addEventListener("click", exportData);
@@ -4002,15 +4785,26 @@ document.addEventListener("mousedown", function(e) {
   });
 }
 
-/* ===== 模块三：键盘 JS 适配（ios-chat 同款方案） ===== */
 (function initKeyboardAdapter() {
   var vv = window.visualViewport;
-  
+  var baseHeight = window.innerHeight;
+
   function setViewportVars() {
-    var height = vv ? vv.height : window.innerHeight;
-    var safeArea = (height < 600) ? '0px' : 'env(safe-area-inset-bottom, 0px)';
+    if (!vv) {
+      document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+      document.documentElement.style.setProperty('--vvs', 'env(safe-area-inset-bottom, 0px)');
+      return;
+    }
+
+    var height = vv.height;
+    var keyboardHeight = Math.max(0, baseHeight - height - (vv.offsetTop || 0));
+    if (keyboardHeight < 80) keyboardHeight = 0;
+
+    var safeArea = (keyboardHeight > 0) ? '0px' : 'env(safe-area-inset-bottom, 0px)';
+
     document.documentElement.style.setProperty('--app-height', height + 'px');
     document.documentElement.style.setProperty('--vvs', safeArea);
+    document.documentElement.style.setProperty('--keyboard-height', keyboardHeight + 'px');
   }
 
   if (vv) {
@@ -4020,6 +4814,59 @@ document.addEventListener("mousedown", function(e) {
     window.addEventListener('resize', setViewportVars);
   }
   setViewportVars();
+})();
+
+(function initChatStickToBottom() {
+  var chatBody = document.getElementById("chatBody");
+  var msgInput = document.getElementById("msgInput");
+  if (!chatBody) return;
+
+  var STICK_THRESHOLD = 60;
+  var stick = true;
+
+  function isStick() {
+    return chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight < STICK_THRESHOLD;
+  }
+
+  chatBody.addEventListener("scroll", function () {
+    stick = isStick();
+  }, { passive: true });
+
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(function () {
+      if (!stick) return;
+      requestAnimationFrame(function () {
+        chatBody.scrollTop = chatBody.scrollHeight;
+      });
+    }).observe(chatBody);
+  }
+
+  if (msgInput) {
+    msgInput.addEventListener("focus", function () {
+      if (!stick) return;
+      setTimeout(function () {
+        chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
+      }, 120);
+    });
+  }
+})();
+
+(function initInputBarSizeSync() {
+  var bar = document.getElementById("chatInputBar");
+  if (!bar) return;
+  var last = 0;
+  function apply() {
+    var h = bar.offsetHeight;
+    if (!h || h === last) return;
+    last = h;
+    document.documentElement.style.setProperty("--input-bar-h", h + "px");
+  }
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(apply).observe(bar);
+  } else {
+    window.addEventListener("resize", apply);
+  }
+  apply();
 })();
 
 function initLiquidGlass() {
@@ -4038,7 +4885,7 @@ function initLiquidGlass() {
 
   script = document.createElement('script');
   script.id = 'liquid-glass-script';
-  script.src = 'https://unpkg.com/@surdeddd/liquidglass@0.12.0/dist/liquidglass.global.js';
+  script.src = './libs/liquid-glass/liquidglass.global.js';
   script.async = true;
   script.onload = function() {
     mountGlassElements();
@@ -4071,6 +4918,7 @@ function mountGlassElements() {
 }
 
 loadData();
+migrateLegacyProvider();
 applyGlassState();
 bindGlobalEvents();
 bindCropEvents();
