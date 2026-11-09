@@ -2,19 +2,13 @@
   <img src="https://readme-typing-svg.demolab.com?font=Noto+Sans+SC&weight=700&size=40&pause=1000&duration=3000&color=FF88AA&vCenter=true&width=500&height=50&lines=Momo+Talk;%E5%92%8C%E8%87%AA%E5%B7%B1%E5%96%9C%E6%AC%A2%E7%9A%84%E8%A7%92%E8%89%B2%E5%AF%B9%E8%AF%9D;%E6%94%AF%E6%8C%81%E8%87%AA%E5%AE%9A%E4%B9%89%E8%A7%92%E8%89%B2" alt="Momo Talk">
 </h1>
 
-> [!IMPORTANT]
-> ### AI 对话服务状态说明
-> 近期 AI 回复出现异常，初步判断为上游服务波动导致的偶发问题，相关排查与回归验证正在进行中。
->
-> 在此期间，其他功能均可正常使用。如遇异常，建议切换其他服务商，或稍后重试。
->
-> 修复时间待定，感谢理解。
-
 一个《蔚蓝档案》风格的同人聊天界面，可以和自己喜欢的角色对话。
 
-> 在线体验：[https://LC-0001.github.io/MomoTalk/](https://LC-0001.github.io/MomoTalk/) 
+> 在线体验：[https://LC-0001.github.io/MomoTalk/](https://LC-0001.github.io/MomoTalk/)
 
 <!-- 建议在此处放一张聊天界面截图（或毛玻璃效果的 GIF），README 观感会好很多 -->
+
+当前稳定版：**v2.2.0**
 
 ## 功能
 
@@ -40,33 +34,40 @@
 
 ## 本地开发
 
-本项目是纯静态页面，无需安装任何依赖：
+本项目是纯静态页面，无需安装任何依赖。推荐使用本地服务器运行：
 
 ```bash
 git clone https://github.com/LC-0001/MomoTalk.git
 cd MomoTalk
-# 直接双击 index.html 即可运行；或起一个本地静态服务器：
+# 起一个本地静态服务器：
 python3 -m http.server 8000
-# 访问 http://localhost:8000
+# 然后访问 http://localhost:8000
 ```
+
+也可以直接双击 `index.html` 打开，但部分功能（如液态玻璃效果）可能受浏览器限制无法正常显示，建议优先使用本地服务器。
 
 ## 支持的 AI 服务
 
 | 服务商 | 说明 | 注册地址 |
 |---|---|---|
-| 智谱 AI | 国内免费，推荐新手（glm-4-flash） | <https://open.bigmodel.cn/> |
-| OpenRouter | 海外免费，模型选择多 | <https://openrouter.ai/keys> |
-| Aion Labs | 角色扮演专用，免费 | <https://www.aionlabs.ai/app/api-keys/> |
+| 智谱 AI | 提供免费额度，推荐新手（glm-4-flash） | <https://open.bigmodel.cn/> |
+| OpenRouter | 提供免费额度，模型选择多 | <https://openrouter.ai/keys> |
+| Aion Labs | 角色扮演专用，提供免费额度 | <https://www.aionlabs.ai/app/api-keys/> |
 | 自定义 | 自己填写 API 地址和模型，可接入任意 OpenAI 兼容接口（进阶） | — |
 
+> 免费额度和套餐可能随时调整，请以各服务商官网为准。
+>
 > 自定义模式示例：想用 **DeepSeek** 的话，API 地址填 `https://api.deepseek.com/chat/completions`，模型填 `deepseek-chat` 即可。
+>
 > 应用内「设置 AI 服务」也带有各服务商的注册引导链接。
+>
 > ⚠️ API Key 只保存在你自己的浏览器里，不会出现在导出文件中，也不要提交到 GitHub。
 
 ## 免责声明
+
 本项目为个人非商业同人项目，与 Nexon、《蔚蓝档案》官方无任何关联。
 
-项目内出现的角色形象、名称、设定等相关IP内容版权归 Nexon 所有。
+项目内出现的角色形象、名称、设定等相关 IP 内容版权归 Nexon 所有。
 
 本项目源码采用 MIT 协议开源，**该协议仅适用于本项目作者编写的代码，不代表授予任何《蔚蓝档案》IP相关授权**。
 
@@ -76,18 +77,18 @@ python3 -m http.server 8000
 
 项目接入的第三方AI服务商（智谱AI、OpenRouter等）由用户自行选择，API密钥仅保存在用户本地浏览器，开发者不对第三方接口返回内容、数据安全承担责任。
 
-如版权方认为本项目构成侵权，请联系仓库作者，将会及时处理、下架相关内容。
+如版权方认为本项目构成侵权，请通过 GitHub Issue 联系仓库作者，将会及时处理、下架相关内容。
 
 - 联系方式：
-  - 项目相关（Bug 反馈等）：欢迎直接在 QQ 群内交流，或在 GitHub Issue 留言。
-  - 侵权申诉等正式事项：请通过 GitHub Issue 联系，以便留档处理。
-  - 个人日常交流：欢迎加入下方「作者说明」中的 QQ 群。
+  - Bug 反馈与功能建议：请优先在 [GitHub Issues](https://github.com/LC-0001/MomoTalk/issues) 提交，方便留档和追踪。
+  - 日常交流、快速提问：欢迎加入 QQ 群 [MomoTalk 交流群](https://qm.qq.com/q/pJGFUezi1M)。
+  - 侵权申诉等正式事项：请仅通过 GitHub Issue 联系，以便留档处理。
 
 ## 更新日志
 
-> **更新日志暂停维护。** 当前版本以 `about.html` 页面显示的版本号为准；以下为历史更新记录，不再逐条补录。项目仍可正常使用，但不再保证更新日志的完整性。
+> **更新日志暂停维护。** 当前版本以 `about.html` 页面显示的版本号为准（即 v2.2.0）；以下为历史更新记录，不再逐条补录。项目仍可正常使用，但不再保证更新日志的完整性。
 >
-> 暂停原因：受移动端开发环境限制，部分新增功能无法充分测试，因此不再逐条维护更新日志。具体开发限制见文末「作者的话」。
+> 暂停原因：受移动端开发环境限制，部分新增功能无法充分测试，因此不再逐条维护更新日志。具体开发限制见文末「作者说明」。
 
 以下为历史更新记录：
 
@@ -103,7 +104,11 @@ python3 -m http.server 8000
 - 项目由 LC-0001 发起并构思
 - 部分代码与文档在 AI 辅助下完成
 
+
+
 ![License](https://img.shields.io/badge/许可-MIT-FF88AA)
+
+
 
 ## 作者说明
 
@@ -113,9 +118,8 @@ python3 -m http.server 8000
 
 因此，我非常希望使用这个项目的朋友能帮我**测试并反馈问题**，也欢迎随时**分享你的使用经验、改进灵感或角色设定思路**。
 
-- **遇到 Bug 或功能建议**：欢迎直接在 [GitHub Issues](https://github.com/LC-0001/MomoTalk/issues) 提交。
-- **日常交流或灵感分享**：欢迎加入交流群
-  - QQ 群：[MomoTalk 交流群](https://qm.qq.com/q/pJGFUezi1M)
+- **遇到 Bug 或功能建议**：请在 [GitHub Issues](https://github.com/LC-0001/MomoTalk/issues) 提交。
+- **日常交流或灵感分享**：欢迎加入 QQ 群 [MomoTalk 交流群](https://qm.qq.com/q/pJGFUezi1M)。
 
 如果懂一点代码，也欢迎 Fork 后自行修改并提交 PR。希望这个项目能在大家的帮助下一起变得更好！
 
@@ -123,7 +127,7 @@ python3 -m http.server 8000
 
 > [!CAUTION]
 > ### 🚨 绝对不要在任何地方发送你的 API Key！
-> 
+>
 > **请注意：** 在本网页中填入 Key 是安全的（因为纯本地运行，不经过任何服务器），但这仅限你自己在浏览器里使用。
-> 
+>
 > **绝对不能**把包含 Key 的截图、文字发到 Issues、评论区、私信或任何公共网络！一旦泄露，你的额度可能会被恶意盗刷，且无法追回。**请为自己的账户安全负责，泄露后果需自行承担。**
