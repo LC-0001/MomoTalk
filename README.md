@@ -5,6 +5,8 @@
 一个《蔚蓝档案》风格的同人聊天界面，可以和自己喜欢的角色对话。
 
 > 在线体验：[https://LC-0001.github.io/MomoTalk/](https://LC-0001.github.io/MomoTalk/)
+>
+> 📱 Android 安装包：[下载最新版 APK](https://github.com/LC-0001/MomoTalk/releases/latest)
 
 ## 功能
 
@@ -15,6 +17,16 @@
 - 毛玻璃（玻璃拟态）外观，可一键开关
 - 数据保存在浏览器本地，支持导出/导入 JSON 备份、恢复已删会话
 - 支持多家 AI 服务商，可随时切换
+
+## Android 版
+
+同一份网页打包成 Capacitor 应用，功能和数据都与网页版一致（数据同样只存在本机）。
+安装包见 [Releases](https://github.com/LC-0001/MomoTalk/releases)。
+
+- 系统要求：Android 8.0 及以上
+- 长按文字时的选择菜单会**按系统自适应**：ColorOS / OxygenOS 这类会把选择弹层画成一块灰底的系统，自动换成内置的玻璃工具条；其它系统保留原生菜单
+- 想手动控制的话，在「更多 → 外观 → 文本选择工具条」里可以选 `自动 / 系统原生 / 自定义`
+- 如果之前装过其它渠道签名的版本，需要先卸载再安装；APK 的版本号与网页版独立编号
 
 ## 技术栈
 
@@ -89,6 +101,8 @@ python3 -m http.server 8000
 项目接入的第三方AI服务商（智谱AI、OpenRouter等）由用户自行选择，API密钥仅保存在用户本地浏览器，开发者不对第三方接口返回内容、数据安全承担责任。
 
 如版权方认为本项目构成侵权，请通过 GitHub Issue 联系仓库作者，将会及时处理、下架相关内容。
+
+Android 安装包同样仅限个人非商业使用，按「现状」提供，不对可用性作任何担保。
 
 - 联系方式：
   - Bug 反馈与功能建议：请优先在 [GitHub Issues](https://github.com/LC-0001/MomoTalk/issues) 提交，方便留档和追踪。
