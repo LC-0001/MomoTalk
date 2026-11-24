@@ -6,7 +6,7 @@
 
 > 在线体验：[https://LC-0001.github.io/MomoTalk/](https://LC-0001.github.io/MomoTalk/)
 >
-> 📱 Android 安装包：[下载最新版 APK](https://github.com/LC-0001/MomoTalk/releases/latest)
+> Android 安装包：[下载最新版](https://github.com/LC-0001/MomoTalk/releases/latest)
 
 ## 功能
 
@@ -26,7 +26,7 @@
 - 系统要求：Android 8.0 及以上
 - 长按文字时的选择菜单会**按系统自适应**：ColorOS / OxygenOS 这类会把选择弹层画成一块灰底的系统，自动换成内置的玻璃工具条；其它系统保留原生菜单
 - 想手动控制的话，在「更多 → 外观 → 文本选择工具条」里可以选 `自动 / 系统原生 / 自定义`
-- 如果之前装过其它渠道签名的版本，需要先卸载再安装；APK 的版本号与网页版独立编号
+- 与官方 2.2.0 版同签名，装过旧版可以直接覆盖升级；APK 的版本号与网页版独立编号
 
 ## 技术栈
 
