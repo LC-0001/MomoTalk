@@ -4964,6 +4964,7 @@ window.__insets = function (top, bottom) {
 };
 
 (function nativeKeyboard() {
+  if (!(window.Capacitor && window.Capacitor.Plugins)) return;  /* 纯浏览器：交给 CSS 的 dvh */
   var Cap = window.Capacitor;
   var KB = Cap && Cap.Plugins && Cap.Plugins.Keyboard;
   var root = document.documentElement;
@@ -5005,6 +5006,7 @@ window.__insets = function (top, bottom) {
 })();
 
 (function lockPageScroll() {
+  if (!(window.Capacitor && window.Capacitor.Plugins)) return;  /* 纯浏览器：交给 CSS 的 dvh */
   function reset() {
     if (window.scrollY !== 0) window.scrollTo(0, 0);
     if (document.documentElement.scrollTop !== 0) document.documentElement.scrollTop = 0;
@@ -5018,6 +5020,7 @@ window.__insets = function (top, bottom) {
 })();
 
 (function initKeyboardAdapter() {
+  if (!(window.Capacitor && window.Capacitor.Plugins)) return;  /* 纯浏览器：交给 CSS 的 dvh */
   var vv = window.visualViewport;
   var baseHeight = window.innerHeight;
 
