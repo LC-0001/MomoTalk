@@ -1,13 +1,13 @@
 // version.js - 版本号（以后发新版只需修改下面这一行）
 window.MOMOTALK_VERSION = {
-  current: "v2.5.1"
+  current: "v2.5.2"
 };
 
 // 兼容 index.html 等文件中可能存在的旧字段引用
 window.MOMOTALK_VERSION.stable = window.MOMOTALK_VERSION.current;
 window.MOMOTALK_VERSION.beta = window.MOMOTALK_VERSION.current;
 
-// 供导出等脚本读取纯数字版本号，例如 "2.5.1"
+// 供导出等脚本读取纯数字版本号，例如 "2.5.2"
 // 支持传入参数（如 "beta"），也支持不传参直接调用
 window.getMomoTalkVersionNum = function (type) {
   var ver = type && window.MOMOTALK_VERSION[type] ? window.MOMOTALK_VERSION[type] : window.MOMOTALK_VERSION.current;
